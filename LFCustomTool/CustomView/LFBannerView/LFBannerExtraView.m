@@ -1,16 +1,16 @@
 //
-//  LFExtraView.m
+//  LFBannerExtraView.m
 //  LFJXStreet
 //
 //  Created by 刘丰 on 2017/3/15.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#import "LFExtraView.h"
+#import "LFBannerExtraView.h"
 
 #define kFont [UIFont systemFontOfSize:15]
 #define kSpace 10
-@interface LFExtraView ()
+@interface LFBannerExtraView ()
 
 @property(nonatomic,weak) UILabel *titleL;
 
@@ -18,7 +18,7 @@
 
 @end
 
-@implementation LFExtraView
+@implementation LFBannerExtraView
 
 - (instancetype)initWithFrame:(CGRect)frame
 {

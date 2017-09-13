@@ -9,7 +9,7 @@
 /**
  用法：
  1.继承KTPageViewController
- 3.实现代理方法
+ 2.实现代理方法
  */
 
 #import <UIKit/UIKit.h>
@@ -17,8 +17,9 @@
 @protocol KTPageDelegate <NSObject>
 
 @required
+- (NSInteger)tabCount;
 - (UIViewController *)viewControllerAtIndex:(NSUInteger)index;
-- (NSArray<NSString *> *)tabTitles;
+- (NSString *)tabTitleAtIndex:(NSUInteger)index;
 
 @optional
 - (UIColor *)tabBackgroundColor;
@@ -33,6 +34,12 @@
 @interface KTPageViewController : UIViewController<KTPageDelegate>
 
 @property(nonatomic,weak) id<KTPageDelegate> delegate;
+
+@property(nonatomic,assign) NSInteger selectIndex;
+
+@property(nonatomic,assign) BOOL scrollEnable;
+
+- (void)reloadData;
 
 @end
 

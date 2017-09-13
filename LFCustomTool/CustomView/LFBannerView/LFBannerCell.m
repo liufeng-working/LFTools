@@ -25,6 +25,7 @@
         self.contentView.backgroundColor = [UIColor clearColor];
         UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.bounds];
         [self.contentView addSubview:imageView];
+        _imageView.backgroundColor = kBackColor;
         _imageView = imageView;
     }
     return self;
@@ -34,7 +35,16 @@
 {
     _bannerModel = bannerModel;
     
-    [self.imageView sd_setImageWithURL:bannerModel.imgUrl placeholderImage:[UIImage imageNamed:@"home_placeHolder"] options:SDWebImageRetryFailed];
+    if (bannerModel.img) {
+        self.imageView.image = bannerModel.img;
+    }else {
+        self.imageView.contentMode = UIViewContentModeCenter;
+        
+        [self.imageView sd_setImageWithURL:bannerModel.imgUrl placeholderImage:[UIImage imageNamed:@"bannerPlaceHolder_icon"]  options:SDWebImageRetryFailed completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+            self.imageView.contentMode = UIViewContentModeScaleToFill;
+
+        }];
+    }
 }
 
 @end

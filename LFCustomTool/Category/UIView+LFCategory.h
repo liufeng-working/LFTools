@@ -118,3 +118,9 @@ IB_DESIGNABLE
 @property(nonatomic,strong) IBInspectable UIColor *borderColor;
 
 @end
+
+@interface UIView (xib)
+
++(instancetype)lf_viewFromXib;
+
+@end

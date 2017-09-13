@@ -2,7 +2,7 @@
 //  LFExtraView.h
 //  LFJXStreet
 //
-//  Created by 刘丰 on 2017/3/15.
+//  Created by 刘丰 on 2017/1/11.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
@@ -10,8 +10,7 @@
 
 @interface LFExtraView : UIView
 
-@property(nonatomic,copy) NSString *title;
-
-@property(nonatomic,copy) NSString *time;
+@property(nonatomic,assign) NSInteger totle;
+@property(nonatomic,assign) NSInteger currentIndex;
 
 @end

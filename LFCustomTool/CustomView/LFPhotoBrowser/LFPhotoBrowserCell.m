@@ -8,44 +8,18 @@
 
 #import "LFPhotoBrowserCell.h"
 #import "LFPhotoModel.h"
-#import "FLAnimatedImageView+WebCache.h"
-#import "LFPhotoBrowserTool.h"
 
 #define lfMinimumZoomScale 1
 #define lfMaximumZoomScale 3
 @interface LFPhotoBrowserCell ()<UIScrollViewDelegate>
 
-@property(nonatomic,weak) FLAnimatedImageView *imageView;
+@property(nonatomic,weak) UIImageView *imageView;
 
 @property(nonatomic,weak) UIScrollView *scrollView;
-
-@property(nonatomic,weak) UIButton *playerBtn;
-
-@property(nonatomic,weak) AVPlayer *player;
-
-@property(nonatomic,weak) AVPlayerLayer *playerLayer;
 
 @end
 
 @implementation LFPhotoBrowserCell
-
-#pragma mark -
-#pragma mark - 懒加载控件
-- (UIButton *)playerBtn
-{
-    if (!_playerBtn) {
-        UIImage *normal = [UIImage imageNamed:@"lfPhotoBrowser_videoPlayer_normal"];
-        UIImage *highlighted = [UIImage imageNamed:@"lfPhotoBrowser_videoPlayer_highlighted"];
-        UIButton *player = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, normal.size.width, normal.size.height)];
-        player.center = self.contentView.center;
-        [player addTarget:self action:@selector(playerBtnClick:) forControlEvents:UIControlEventTouchUpInside];
-        [player setImage:normal forState:UIControlStateNormal];
-        [player setImage:highlighted forState:UIControlStateHighlighted];
-        [self.contentView addSubview:player];
-        _playerBtn = player;
-    }
-    return _playerBtn;
-}
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
@@ -61,7 +35,7 @@
         [self.contentView addSubview:scrollView];
         _scrollView = scrollView;
         
-        FLAnimatedImageView *imageView = [[FLAnimatedImageView alloc] init];
+        UIImageView *imageView = [[UIImageView alloc] init];
         imageView.frame = self.scrollView.bounds;
         imageView.contentMode = UIViewContentModeScaleAspectFit;
         imageView.userInteractionEnabled = YES;
@@ -75,11 +49,25 @@
         UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap)];
         [tapGesture requireGestureRecognizerToFail:doubleTapGesture];
         [self addGestureRecognizer:tapGesture];
-        
-        //注册播放视频结束后的通知
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(playEnd) name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
     }
     return self;
+}
+
+- (void)setImage:(UIImage *)image
+{
+    _image = image;
+    
+    self.imageView.image = image;
+    [self adjustFrame];
+}
+
+- (void)setUrl:(NSURL *)url
+{
+    _url = url;
+    
+    [self.imageView sd_setImageWithPreviousCachedImageWithURL:url placeholderImage:nil options:SDWebImageRetryFailed progress:nil completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+        [self adjustFrame];
+    }];
 }
 
 #pragma mark -
@@ -91,17 +79,14 @@
     //修改缩放比例
     self.scrollView.zoomScale = lfMinimumZoomScale;
     self.scrollView.contentOffset = CGPointZero;
-    
-    //去除播放视频的 layer
-    [self playEnd];
-    
-    // 填充数据
-    [self.imageView sd_setImageWithURL:photoModel.imgUrl placeholderImage:photoModel.placeholderImage options:SDWebImageRetryFailed progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-        
-    } completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-        
+    if (photoModel.image) {
+        self.imageView.image = photoModel.image;
         [self adjustFrame];
-    }];
+    }else {
+        [self.imageView sd_setImageWithPreviousCachedImageWithURL:photoModel.imgUrl placeholderImage:photoModel.placeholderImage options:SDWebImageRetryFailed progress:nil completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+            [self adjustFrame];
+        }];
+    }
 }
 
 #pragma mark -
@@ -118,48 +103,6 @@
     CGFloat contentW = scrollView.contentSize.width;
     CGFloat contentH = scrollView.contentSize.height;
     self.imageView.center = CGPointMake(MAX(w, contentW)*0.5, MAX(h, contentH)*0.5);
-}
-
-- (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view
-{
-    [self playerButtonHidden:YES];
-}
-
-- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale
-{
-    [self playerButtonHidden:NO];
-}
-
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-    [self playerButtonHidden:YES];
-}
-
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-{
-    [self playerButtonHidden:NO];
-}
-
-- (void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView
-{
-    [self playerButtonHidden:YES];
-}
-
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-{
-    [self playerButtonHidden:NO];
-}
-
-- (void)playerButtonHidden:(BOOL)hidden
-{
-    //1.视频
-    //2.未播放
-    if (self.photoModel.isVideo &&
-        self.player.rate == 0) {
-        self.playerBtn.hidden = hidden;
-    }else {
-        self.playerBtn.hidden = YES;
-    }
 }
 
 #pragma mark -
@@ -187,43 +130,38 @@
 #pragma mark - 调整坐标
 - (void)adjustFrame
 {
-    CGSize fitSize = [LFPhotoBrowserTool fitSize:self.imageView.image.size maxSize:CGSizeMake(CGRectGetWidth(self.scrollView.bounds), MAXFLOAT)];
+    CGSize fitSize = [self fitSize:self.imageView.image.size maxSize:CGSizeMake(CGRectGetWidth(self.scrollView.bounds), MAXFLOAT)];
     self.scrollView.contentSize = fitSize;
     CGFloat fitW = fitSize.width;
     CGFloat fitH = fitSize.height;
-    CGFloat fitX = [LFPhotoBrowserTool fitOrigin:fitW max:CGRectGetWidth(self.scrollView.bounds)];
-    CGFloat fitY = [LFPhotoBrowserTool fitOrigin:fitH max:CGRectGetHeight(self.scrollView.bounds)];
+    CGFloat fitX = [self fitOrigin:fitW max:CGRectGetWidth(self.scrollView.bounds)];
+    CGFloat fitY = [self fitOrigin:fitH max:CGRectGetHeight(self.scrollView.bounds)];
     self.imageView.frame = CGRectMake(fitX, fitY, fitW, fitH);
 }
 
-#pragma mark -
-#pragma mark - 点击播放按钮
-- (void)playerBtnClick:(UIButton *)sender
+- (CGSize)fitSize:(CGSize)originalSize maxSize:(CGSize)maxSize
 {
-    AVPlayerItem *playerItem = [AVPlayerItem playerItemWithURL:self.photoModel.videoUrl];
-    self.player = [AVPlayer playerWithPlayerItem:playerItem];
-    self.playerLayer = [AVPlayerLayer playerLayerWithPlayer:self.player];
-    self.playerLayer.frame = self.imageView.bounds;
-    [self.imageView.layer addSublayer:self.playerLayer];
-    [self.player play];//播放
-    [self playerButtonHidden:YES];
+    CGFloat maxW = maxSize.width;
+    CGFloat maxH = maxSize.height;
+    CGFloat maxScale = maxW*1.0/maxH;
+    CGFloat originalW = originalSize.width;
+    CGFloat originalH = originalSize.height;
+    CGFloat scale = originalW*1.0/originalH;
+    
+    if (scale > maxScale && originalW > maxW) {
+        return CGSizeMake(maxW, maxW / scale);
+    }else if (scale < maxScale && originalH > maxH) {
+        return CGSizeMake(scale * maxH, maxH);
+    }else if (scale == maxScale && originalH > maxH) {
+        return CGSizeMake(maxW, maxH);
+    }else {
+        return originalSize;
+    }
 }
 
-#pragma mark -
-#pragma mark - 停止播放视频
-- (void)playEnd
+- (CGFloat)fitOrigin:(CGFloat)original max:(CGFloat)max
 {
-    [self.player pause];
-    [self playerButtonHidden:NO];
-    if (self.playerLayer)
-        [self.playerLayer removeFromSuperlayer];
-}
-
-- (void)dealloc
-{
-    [self playEnd];
-    //移除视频播放结束的通知
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:AVPlayerItemDidPlayToEndTimeNotification object:nil];
+    return original > max ? 0 : (max - original)*0.5;
 }
 
 @end

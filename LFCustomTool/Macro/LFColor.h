@@ -1,13 +1,12 @@
 //
-//  KTColor.h
-//  KTUAV
+//  LFColor.h
 //
 //  Created by 刘丰 on 2017/5/26.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#ifndef KTColor_h
-#define KTColor_h
+#ifndef LFColor_h
+#define LFColor_h
 
 //背景（灰白色）
 #define kBackColor [UIColor colorWithHexString:@"#EFEFF4"]
@@ -21,4 +20,4 @@
 //二级字颜色（灰黑色）
 #define kSecFontColor [UIColor colorWithHexString:@"#77777"]
 
-#endif /* KTColor_h */
+#endif /* LFColor_h */

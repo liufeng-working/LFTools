@@ -14,6 +14,7 @@
 #define YOffset    -20.0f
 #define LabelFont  15
 #define LFWINDOW [[[UIApplication sharedApplication] delegate] window]
+#define Color [UIColor colorWithWhite:0 alpha:0.6]
 
 @implementation LFNotification
 
@@ -33,7 +34,7 @@ MBProgressHUD *HUD = nil;
     HUD.margin = Margin;
     HUD.yOffset = YOffset;
     HUD.userInteractionEnabled = YES;
-	
+	HUD.color = Color;
 	[HUD hide:YES afterDelay:HideTime];
 }
 
@@ -55,7 +56,7 @@ MBProgressHUD *HUD = nil;
 	HUD.labelText = text;
 	HUD.margin = Margin;
 	HUD.yOffset = YOffset;
-    HUD.color = [UIColor blackColor];
+    HUD.color = Color;
     HUD.labelFont = [UIFont systemFontOfSize:LabelFont];
 	HUD.removeFromSuperViewOnHide = YES;
 	HUD.userInteractionEnabled = YES;
@@ -77,7 +78,7 @@ MBProgressHUD *HUD = nil;
     HUD.labelText = text;
     HUD.margin = Margin;
     HUD.yOffset = YOffset;
-    HUD.color = [UIColor blackColor];
+    HUD.color = Color;
     HUD.labelFont = [UIFont systemFontOfSize:LabelFont];
     HUD.removeFromSuperViewOnHide = YES;
     HUD.userInteractionEnabled = YES;
@@ -104,7 +105,7 @@ MBProgressHUD *HUD = nil;
     HUD.labelText = text;
     HUD.margin = Margin;
     HUD.yOffset = YOffset;
-    HUD.color = [UIColor blackColor];
+    HUD.color = Color;
     HUD.labelFont = [UIFont systemFontOfSize:LabelFont];
     HUD.removeFromSuperViewOnHide = YES;
     HUD.userInteractionEnabled = YES;
@@ -127,6 +128,7 @@ MBProgressHUD *HUD = nil;
 	HUD.removeFromSuperViewOnHide = YES;
     HUD.userInteractionEnabled = YES;
     HUD.dimBackground = YES;
+    HUD.color = Color;
 }
 
 + (void)manuallyHideWithText:(NSString*)text
@@ -146,7 +148,7 @@ MBProgressHUD *HUD = nil;
 	HUD.labelText = text;
 	HUD.margin = Margin;
 	HUD.yOffset = YOffset;
-    HUD.color = [UIColor blackColor];
+    HUD.color = Color;
     HUD.labelFont = [UIFont systemFontOfSize:LabelFont];
 	HUD.removeFromSuperViewOnHide = YES;
     HUD.userInteractionEnabled = YES;
@@ -169,7 +171,7 @@ MBProgressHUD *HUD = nil;
 	HUD.labelText = text;
     HUD.margin = Margin;
 	HUD.yOffset = YOffset;
-    HUD.color = [UIColor blackColor];
+    HUD.color = Color;
     HUD.labelFont = [UIFont systemFontOfSize:LabelFont];
 	HUD.removeFromSuperViewOnHide = YES;
     HUD.userInteractionEnabled = YES;
@@ -196,7 +198,7 @@ MBProgressHUD *HUD = nil;
     HUD.labelText = text;
     HUD.margin = Margin;
     HUD.yOffset = YOffset;
-    HUD.color = [UIColor blackColor];
+    HUD.color = Color;
     HUD.labelFont = [UIFont systemFontOfSize:LabelFont];
     HUD.removeFromSuperViewOnHide = YES;
     HUD.userInteractionEnabled = YES;

@@ -8,7 +8,7 @@
 
 #import "LFNavigationController.h"
 
-@interface LFNavigationController ()
+@interface LFNavigationController ()<UIGestureRecognizerDelegate>
 
 @end
 
@@ -41,13 +41,22 @@
     [super viewDidLoad];
     
 //    self.navigationBar.translucent = NO;
+    
+    UIPanGestureRecognizer *interactivePan = [[UIPanGestureRecognizer alloc] initWithTarget:self.interactivePopGestureRecognizer.delegate action:NSSelectorFromString(@"handleNavigationTransition:")];
+    interactivePan.delegate = self;
+    [self.view addGestureRecognizer:interactivePan];
+    
+    self.interactivePopGestureRecognizer.enabled = NO;
 }
 
 //push时，隐藏底部TabBar
 - (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated {
     
-    viewController.hidesBottomBarWhenPushed = YES;
+    if (self.viewControllers.count) {
+        viewController.navigationItem.leftBarButtonItem = [UIBarButtonItem backBarButtonItemWithTarget:self action:@selector(back) image:[UIImage originalImageNamed:@"navigationButtonReturn"] highlightedImage:[UIImage originalImageNamed:@"navigationButtonReturnClick"] color:[UIColor blackColor] highlightedColor:[UIColor redColor] title:@"返回"];
+    }
     
+    viewController.hidesBottomBarWhenPushed = self.viewControllers.count;
     [super pushViewController:viewController animated:animated];
 }
 
@@ -57,6 +66,12 @@
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
     return UIStatusBarStyleLightContent;
+}
+
+#pragma mark -
+#pragma mark - UIGestureRecognizerDelegate
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    return self.viewControllers.count != 1;
 }
 
 -(void)dealloc {

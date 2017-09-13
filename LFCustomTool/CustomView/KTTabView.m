@@ -140,9 +140,14 @@
         [self addSubview:btn];
         [self.tabs addObject:btn];
        
+        CGFloat itemW = [nameWs[idx] floatValue];
+        if (maxW < width) {
+            itemW += (width - maxW)/names.count;
+        }
+        
         [btn mas_makeConstraints:^(MASConstraintMaker *make) {
             make.centerY.equalTo(self);
-            make.width.equalTo(self.mas_width).dividedBy(names.count);
+            make.width.equalTo(@(itemW));
             make.left.equalTo(lastBtn ? lastBtn.mas_right : @0);
         }];
         

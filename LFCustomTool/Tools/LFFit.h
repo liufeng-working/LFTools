@@ -27,4 +27,10 @@
  */
 + (CGFloat)fitOrigin:(CGFloat)original max:(CGFloat)max;
 
+/**
+ 根据指定size，获取等比例height或width
+ */
++ (CGFloat)fitHeightForWidth:(CGFloat)width originSize:(CGSize)size;
++ (CGFloat)fitWidthForHeight:(CGFloat)height originSize:(CGSize)size;
+
 @end

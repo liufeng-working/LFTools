@@ -1,14 +1,11 @@
 //
 //  LFKey.h
-//  LFJXStreet
 //
-//  Created by 刘丰 on 2017/6/22.
+//  Created by 刘丰 on 2017/8/12.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#ifndef LFKey_h
-#define LFKey_h
+#import <UIKit/UIKit.h>
 
-static NSString *const KTLoadingKey   = @"Loading";
+UIKIT_EXTERN NSString *const KTLoadingKey;
 
-#endif /* LFKey_h */

@@ -1121,3 +1121,15 @@
 }
 
 @end
+
+@implementation NSString (trim)
+
+/**
+ 去除空格
+ */
+- (NSString *)trimSpace
+{
+    return [self stringByReplacingOccurrencesOfString:@" " withString:@""];
+}
+
+@end

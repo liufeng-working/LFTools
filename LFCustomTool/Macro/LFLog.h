@@ -1,13 +1,12 @@
 //
-//  KTLog.h
-//  KTUAV
+//  LFLog.h
 //
 //  Created by 刘丰 on 2017/5/26.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#ifndef KTLog_h
-#define KTLog_h
+#ifndef LFLog_h
+#define LFLog_h
 
 #if DEBUG
 #define NSLog(format, ...) do {                                             \
@@ -40,4 +39,4 @@ fprintf(stderr, "-----------------------------------------\n"); \
 #define kPrintFunction()
 #endif
 
-#endif /* KTLog_h */
+#endif /* LFLog_h */

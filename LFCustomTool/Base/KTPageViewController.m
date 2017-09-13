@@ -15,7 +15,7 @@
 
 @property(nonatomic,weak) UIScrollView *contentView;
 
-@property(nonatomic,strong) NSArray *titles;
+@property(nonatomic,strong) NSMutableArray<UIViewController *> *viewControllers;
 
 @end
 
@@ -49,6 +49,8 @@
         content.showsHorizontalScrollIndicator = NO;
         content.pagingEnabled = YES;
         content.bounces = NO;
+        content.delaysContentTouches = YES;
+        content.canCancelContentTouches = NO;
         [self.view addSubview:content];
         _contentView = content;
         [content mas_makeConstraints:^(MASConstraintMaker *make) {
@@ -59,12 +61,48 @@
     return _contentView;
 }
 
+- (NSMutableArray<UIViewController *> *)viewControllers
+{
+    if (!_viewControllers) {
+        _viewControllers = [NSMutableArray array];
+    }
+    return _viewControllers;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.delegate = self;
     
-    self.titles = [self.delegate tabTitles];
+    [self reloadData];
+}
+
+- (void)setSelectIndex:(NSInteger)selectIndex
+{
+    if (selectIndex <= 0) {
+        _selectIndex = 0;
+    }else if (selectIndex >= self.delegate.tabCount) {
+        _selectIndex = self.delegate.tabCount;
+    }else {
+        _selectIndex = selectIndex;
+    }
+    
+    [self.topView setIndex:_selectIndex];
+    [self tabViewDidSelectTabAtIndex:_selectIndex];
+}
+
+- (void)setScrollEnable:(BOOL)scrollEnable
+{
+    _scrollEnable = scrollEnable;
+    
+    self.contentView.scrollEnabled = scrollEnable;
+}
+
+- (void)reloadData
+{
+    if (self.topView.names.count) {
+        return;
+    }
     
     [self addChildViewController];
     [self setupTab];
@@ -72,17 +110,23 @@
 
 - (void)addChildViewController
 {
-    NSInteger count = self.titles.count;
+    NSInteger count = self.delegate.tabCount;
     for (NSInteger i = 0; i < count; i ++) {
         UIViewController *childVC = [self.delegate viewControllerAtIndex:i];
         [self addChildViewController:childVC];
+        [self.viewControllers addObject:childVC];
     }
+    
     self.contentView.contentSize = CGSizeMake(count*CGRectGetWidth(self.view.frame), 0);
 }
 
 - (void)setupTab
 {
-    self.topView.names = self.titles;
+    NSMutableArray *titles = [NSMutableArray arrayWithCapacity:self.delegate.tabCount];
+    for (NSInteger i = 0; i < self.delegate.tabCount; i ++) {
+        [titles addObject:[self.delegate tabTitleAtIndex:i]];
+    }
+    self.topView.names = titles;
     
     if ([self.delegate respondsToSelector:@selector(tabBackgroundColor)]) {
         self.topView.backgroundColor = [self.delegate tabBackgroundColor];
@@ -111,7 +155,7 @@
 
 - (void)addChildView:(NSUInteger)index
 {
-    UIViewController *childVC = self.childViewControllers[index];
+    UIViewController *childVC = self.viewControllers[index];
     if (childVC.isViewLoaded) { return; }
     childVC.view.frame = self.contentView.bounds;
     [self.contentView addSubview:childVC.view];
@@ -121,7 +165,7 @@
 #pragma mark - KTTabViewDelegate
 - (void)tabViewDidSelectTabAtIndex:(NSUInteger)index
 {
-    CGFloat offsetX = CGRectGetWidth(self.contentView.frame)*index;
+    CGFloat offsetX = CGRectGetWidth(self.view.frame)*index;
     [self.contentView setContentOffset:CGPointMake(offsetX, 0) animated:NO];
     [self addChildView:index];
 }
@@ -140,10 +184,22 @@
 
 #pragma mark -
 #pragma mark - KTPageDelegate
-- (UIViewController *)viewControllerAtIndex:(NSUInteger)index
-{ return nil; }
+- (NSInteger)tabCount
+{
+    NSAssert(NO, @"%@必须实现协议方法\'- tabCount\'", self.class);
+    return 0;
+}
 
-- (NSArray<NSString *> *)tabTitles
-{ return  nil; }
+- (UIViewController *)viewControllerAtIndex:(NSUInteger)index
+{
+    NSAssert(NO, @"%@必须实现协议方法\'- viewControllerAtIndex:\'", self.class);
+    return nil;
+}
+
+- (NSString *)tabTitleAtIndex:(NSUInteger)index
+{
+    NSAssert(NO, @"%@必须实现协议方法\'- tabTitleAtIndex:\'", self.class);
+    return  nil;
+}
 
 @end

@@ -1,14 +1,13 @@
 //
-//  KTRefreshHeader.m
-//  KTUAV_manager
+//  LFRefreshHeader.m
 //
 //  Created by 刘丰 on 2017/6/13.
 //  Copyright © 2017年 kaituo. All rights reserved.
 //
 
-#import "KTRefreshHeader.h"
+#import "LFRefreshHeader.h"
 
-@implementation KTRefreshHeader
+@implementation LFRefreshHeader
 
 - (void)prepare
 {

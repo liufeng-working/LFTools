@@ -7,8 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "LFBannerModel.h"
 
-@class LFBannerModel;
 @protocol LFBannerViewDelegate;
 @interface LFBannerView : UIView
 

@@ -12,11 +12,11 @@
 @class LFPhotoModel;
 @interface LFPhotoBrowserCell : UICollectionViewCell
 
+@property(nonatomic,strong) UIImage *image;
+@property(nonatomic,strong) NSURL *url;
 @property(nonatomic,strong) LFPhotoModel *photoModel;
 
 @property(nonatomic,weak) id<LFPhotoBrowserCellDelegate> delegate;
-
-- (void)playEnd;
 
 @end
 

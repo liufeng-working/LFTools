@@ -1,6 +1,5 @@
 //
 //  LFStaticInline.h
-//  LFStaticInline
 //
 //  Created by 刘丰 on 2017/6/6.
 //  Copyright © 2017年 liufeng. All rights reserved.
@@ -12,7 +11,7 @@
 #pragma mark -
 #pragma mark - 判断一个id类型是否为空
 /** 判断一个id类型是否为空 */
-UIKIT_STATIC_INLINE BOOL NSObjectIsEmpty(id obj) {
+UIKIT_STATIC_INLINE BOOL lf_NSObjectIsEmpty(id obj) {
     if (obj == nil ||
         obj == NULL ||
         [obj isEqual:[NSNull null]] ||
@@ -33,14 +32,14 @@ UIKIT_STATIC_INLINE BOOL NSObjectIsEmpty(id obj) {
 #pragma mark -
 #pragma mark - 点偏移
 /** 点偏移 */
-UIKIT_STATIC_INLINE CGPoint CGPointOffset(CGPoint point, CGFloat dx, CGFloat dy) {
+UIKIT_STATIC_INLINE CGPoint lf_CGPointOffset(CGPoint point, CGFloat dx, CGFloat dy) {
     return CGPointMake(point.x + dx, point.y + dy);
 }
 
 #pragma mark -
 #pragma mark - id类型转成字符串
 /** id类型转成字符串 */
-UIKIT_STATIC_INLINE NSString *NSStringFromObject(id object) {
+UIKIT_STATIC_INLINE NSString *lf_NSStringFromObject(id object) {
     if (object == nil || [object isEqual:[NSNull null]]) {
         return @"";
     } else if ([object isKindOfClass:[NSString class]]) {
@@ -55,7 +54,7 @@ UIKIT_STATIC_INLINE NSString *NSStringFromObject(id object) {
 #pragma mark -
 #pragma mark - NSInteger转成字符串
 /** NSInteger转成字符串 */
-UIKIT_STATIC_INLINE NSString *NSStringFromNSInteger(NSInteger number) {
+UIKIT_STATIC_INLINE NSString *lf_NSStringFromNSInteger(NSInteger number) {
     
 #if __LP64__ || (TARGET_OS_EMBEDDED && !TARGET_OS_IPHONE) || TARGET_OS_WIN32 || NS_BUILD_32_LIKE_64
     return [NSString stringWithFormat:@"%ld", (long)number];
@@ -67,7 +66,7 @@ UIKIT_STATIC_INLINE NSString *NSStringFromNSInteger(NSInteger number) {
 #pragma mark -
 #pragma mark - CGRect转成字符串{x, y, width, height}
 /** CGRect转成字符串 */
-UIKIT_STATIC_INLINE NSString *NSStringFromCGRect(CGRect rect) {
+UIKIT_STATIC_INLINE NSString *lf_NSStringFromCGRect(CGRect rect) {
     
     return [NSString stringWithFormat:@"{%.2f, %.2f, %.2f, %.2f}", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height];
 }
@@ -75,7 +74,7 @@ UIKIT_STATIC_INLINE NSString *NSStringFromCGRect(CGRect rect) {
 #pragma mark -
 #pragma mark - CGPoint转成字符串{x, y}
 /** CGPoint转成字符串 */
-UIKIT_STATIC_INLINE NSString *NSStringFromCGPoint(CGPoint point) {
+UIKIT_STATIC_INLINE NSString *lf_NSStringFromCGPoint(CGPoint point) {
     
     return [NSString stringWithFormat:@"{%.2f, %.2f}", point.x, point.y];
 }
@@ -83,7 +82,7 @@ UIKIT_STATIC_INLINE NSString *NSStringFromCGPoint(CGPoint point) {
 #pragma mark -
 #pragma mark - CGSize转成字符串{width, height}
 /** CGSize转成字符串 */
-UIKIT_STATIC_INLINE NSString *NSStringFromCGSize(CGSize size) {
+UIKIT_STATIC_INLINE NSString *lf_NSStringFromCGSize(CGSize size) {
     
     return [NSString stringWithFormat:@"{%.2f, %.2f}", size.width, size.height];
 }
@@ -91,7 +90,7 @@ UIKIT_STATIC_INLINE NSString *NSStringFromCGSize(CGSize size) {
 #pragma mark -
 #pragma mark - 根据字典自动生成属性
 /** 根据字典自动生成属性 */
-UIKIT_STATIC_INLINE void LFPropertyCode(NSDictionary *dic) {
+UIKIT_STATIC_INLINE void lf_PropertyCode(NSDictionary *dic) {
     //属性代码
     NSMutableString *code = [NSMutableString stringWithString:@"\n"];
     //备注
@@ -113,7 +112,7 @@ UIKIT_STATIC_INLINE void LFPropertyCode(NSDictionary *dic) {
             type = @"NSString *";
         }else if ([obj isKindOfClass:NSClassFromString(@"__NSCFDictionary")]) {//NSDictionary
             printf("\n//---------------%s---------------", key.UTF8String);
-            LFPropertyCode(obj);
+            lf_PropertyCode(obj);
             printf("//---------------%s---------------\n", key.UTF8String);
             
             polity = @"strong";
@@ -124,7 +123,7 @@ UIKIT_STATIC_INLINE void LFPropertyCode(NSDictionary *dic) {
         }else if ([obj isKindOfClass:NSClassFromString(@"__NSCFArray")]) {//NSArray
             if ([obj[0] isKindOfClass:NSClassFromString(@"__NSCFDictionary")]) {
                 printf("\n//---------------%s---------------", key.UTF8String);
-                LFPropertyCode(obj[0]);
+                lf_PropertyCode(obj[0]);
                 printf("//---------------%s---------------\n", key.UTF8String);
             }
             
@@ -134,7 +133,7 @@ UIKIT_STATIC_INLINE void LFPropertyCode(NSDictionary *dic) {
             polity = @"assign";
             type = @"BOOL ";
         }else {//未知
-            polity = @"<#name#>";
+            polity = @"<#name#> *";
             type = @"<#name#>";
         }
         

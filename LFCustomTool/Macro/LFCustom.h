@@ -1,13 +1,12 @@
 //
-//  KTCustom.h
-//  KTUAV
+//  LFCustom.h
 //
 //  Created by 刘丰 on 2017/5/26.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#ifndef KTCustom_h
-#define KTCustom_h
+#ifndef LFCustom_h
+#define LFCustom_h
 
 #pragma mark -
 #pragma mark - 一些视图
@@ -97,4 +96,4 @@ kPush(nextVC);\
 #define kStrongSelf(strongSelf) __strong typeof(weakSelf) strongSelf = weakSelf
 
 
-#endif /* KTCustom_h */
+#endif /* LFCustom_h */

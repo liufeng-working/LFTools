@@ -12,8 +12,10 @@
 @interface LFPhotoBrowserViewController : UICollectionViewController
 
 /**
- 图片数组
+ 图片数组（选择其中一个赋值）
  */
+@property(nonatomic,strong) NSArray<UIImage *> *images;
+@property(nonatomic,strong) NSArray<NSURL *> *urls;
 @property(nonatomic,strong) NSArray <LFPhotoModel *>*photos;
 
 /**

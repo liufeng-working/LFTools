@@ -1,14 +1,10 @@
 //
 //  LFNotification.h
-//  LFJXStreet
 //
-//  Created by 刘丰 on 2017/6/22.
+//  Created by 刘丰 on 2017/8/12.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#ifndef LFNotification_h
-#define LFNotification_h
+#import <UIKit/UIKit.h>
 
-static NSString *const KTLoadingNotification   = @"Loading";
-
-#endif /* LFNotification_h */
+UIKIT_EXTERN NSString *const KTLoadingNotification;

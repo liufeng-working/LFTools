@@ -8,11 +8,11 @@
 
 #import "LFBannerView.h"
 #import "LFBannerCell.h"
-#import "LFBannerModel.h"
-#import "LFExtraView.h"
+#import "LFBannerExtraView.h"
 
-#define kPageH 20 //UIPageControl高度
-#define kExtraH 20 //标题，时间 view的高度
+#define kPageH 30 //UIPageControl高度
+#define kPageWper 20 //UIPageControl宽度
+#define kExtraH 30 //标题，时间 view的高度
 #define kTimeInterval 3 //轮播的时间
 @interface LFBannerView ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 
@@ -26,7 +26,7 @@
 
 @property(nonatomic,assign) NSInteger currentIndex;
 
-@property(nonatomic,weak) LFExtraView *extraView;
+@property(nonatomic,weak) LFBannerExtraView *extraView;
 
 @end
 
@@ -40,8 +40,7 @@ static NSString *const cellIdentifier = @"LFBannerCell";
         layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
         layout.minimumLineSpacing = 0;
         layout.minimumInteritemSpacing = 0;
-        layout.itemSize = CGSizeMake(CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
-        UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:layout];
+        UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
         collectionView.delegate = self;
         collectionView.dataSource = self;
         collectionView.backgroundColor = [UIColor clearColor];
@@ -58,7 +57,7 @@ static NSString *const cellIdentifier = @"LFBannerCell";
 - (UIPageControl *)pageControl
 {
     if (!_pageControl) {
-        UIPageControl *pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.bounds) - kPageH, CGRectGetWidth(self.bounds), kPageH)];
+        UIPageControl *pageControl = [[UIPageControl alloc] init];
         pageControl.hidesForSinglePage = YES;
         pageControl.numberOfPages = self.banners.count;
         pageControl.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
@@ -70,14 +69,23 @@ static NSString *const cellIdentifier = @"LFBannerCell";
     return _pageControl;
 }
 
-- (LFExtraView *)extraView
+- (LFBannerExtraView *)extraView
 {
     if (!_extraView) {
-        LFExtraView *extra = [[LFExtraView alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.bounds) - kExtraH - kPageH, CGRectGetWidth(self.bounds), kExtraH)];
+        LFBannerExtraView *extra = [[LFBannerExtraView alloc] init];
+        extra.backgroundColor = [UIColor colorWithWhite:0 alpha:0.5];
         [self addSubview:extra];
         _extraView = extra;
     }
     return _extraView;
+}
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    self.backgroundColor = [UIColor clearColor];
+    
+    [self.collectionView registerClass:[LFBannerCell class] forCellWithReuseIdentifier:cellIdentifier];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -91,6 +99,22 @@ static NSString *const cellIdentifier = @"LFBannerCell";
     return self;
 }
 
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    CGFloat width = CGRectGetWidth(self.bounds);
+    CGFloat height = CGRectGetHeight(self.bounds);
+    self.collectionView.frame = self.bounds;
+    ((UICollectionViewFlowLayout *)self.collectionView.collectionViewLayout).itemSize = CGSizeMake(width, height);
+    NSUInteger count = self.banners.count;
+    if (count == 1) {
+        count = 0;
+    }
+    self.pageControl.frame = CGRectMake(width - count*kPageWper, height - kPageH, count*kPageWper, kPageH);
+    self.pageControl.numberOfPages = count;
+    self.extraView.frame = CGRectMake(0, height - kExtraH, width - count*kPageWper, kExtraH);
+}
+
 - (void)setBanners:(NSArray<LFBannerModel *> *)banners
 {
     _banners = banners;
@@ -101,11 +125,15 @@ static NSString *const cellIdentifier = @"LFBannerCell";
     self.priBanners = temArr;
     [self.collectionView reloadData];
     
-    self.currentIndex = 1;
-    [self changePositionAnimation:NO];
-    [self changePage];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.currentIndex = 1;
+        [self changePositionAnimation:NO];
+        [self changePage];
+    });
     
     [self fire];//开启定时器
+    
+    [self setNeedsLayout];
 }
 
 #pragma mark -

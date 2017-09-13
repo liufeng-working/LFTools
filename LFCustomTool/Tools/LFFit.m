@@ -73,4 +73,17 @@
     return original > max ? 0 : (max - original)*0.5;
 }
 
+/**
+ 根据指定size，获取等比例height或width
+ */
++ (CGFloat)fitHeightForWidth:(CGFloat)width originSize:(CGSize)size
+{
+    return width*size.height/size.width;
+}
+
++ (CGFloat)fitWidthForHeight:(CGFloat)height originSize:(CGSize)size
+{
+    return height*size.width/size.height;
+}
+
 @end

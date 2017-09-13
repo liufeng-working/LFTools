@@ -8,41 +8,19 @@
 
 #import "LFPhotoBrowserViewController.h"
 #import "LFPhotoBrowserCell.h"
-#import "LFTopView.h"
-#import "LFBottomView.h"
+#import "LFExtraView.h"
 
+#define lf_screenWidth ([UIScreen mainScreen].bounds.size.width)
+#define lf_screenHeight ([UIScreen mainScreen].bounds.size.height)
+#define lf_extraViewHeight 44
 @interface LFPhotoBrowserViewController ()<LFPhotoBrowserCellDelegate>
 
-@property(nonatomic,weak) LFTopView *topView;
-@property(nonatomic,weak) LFBottomView *bottomView;
+@property(nonatomic,weak) LFExtraView *extraView;
 
 @end
 
 static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
 @implementation LFPhotoBrowserViewController
-
-#pragma mark -
-#pragma mark - 懒加载控件
-- (LFTopView *)topView
-{
-    if (!_topView) {
-        LFTopView *top = [[LFTopView alloc] initWithFrame:CGRectMake(0, 0, kScreenWidth, 44)];
-        top.totle = self.photos.count;
-        [self.view addSubview:top];
-        _topView = top;
-    }
-    return _topView;
-}
-
-- (LFBottomView *)bottomView
-{
-    if (!_bottomView) {
-        LFBottomView *bottom = [[LFBottomView alloc] initWithFrame:CGRectMake(0, kScreenHeight - 49, kScreenWidth, 49)];
-        [self.view addSubview:bottom];
-        _bottomView = bottom;
-    }
-    return _bottomView;
-}
 
 - (instancetype)init
 {
@@ -50,12 +28,31 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     layout.minimumLineSpacing = 0;
     layout.minimumInteritemSpacing = 0;
-    layout.itemSize = CGSizeMake(kScreenWidth, kScreenHeight);
+    layout.itemSize = CGSizeMake(lf_screenWidth, lf_screenHeight);
     return [super initWithCollectionViewLayout:layout];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    LFExtraView *extra = [[LFExtraView alloc] init];
+    if (self.images.count) {
+        extra.totle = self.images.count;
+    }else if (self.urls.count) {
+        extra.totle = self.urls.count;
+    }else if (self.photos.count) {
+        extra.totle = self.photos.count;
+    }else {
+        extra.totle = 0;
+    }
+    
+    [self.view addSubview:extra];
+    _extraView = extra;
+    [extra mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(@20);
+        make.left.right.equalTo(self.view);
+        make.height.equalTo(@(lf_extraViewHeight));
+    }];
     
     self.collectionView.pagingEnabled = YES;
     self.collectionView.showsHorizontalScrollIndicator = NO;
@@ -65,15 +62,9 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     //移动到点击的图片
     [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
     
-    if (self.photos.count != 1) {
-        self.topView.currentIndex = self.currentIndex + 1;
+    if (self.images.count > 1 || self.urls.count > 1 || self.photos.count > 1) {
+        _extraView.currentIndex = self.currentIndex + 1;
     }
-}
-
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
 }
 
 #pragma mark -
@@ -83,7 +74,7 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     self.view.transform = CGAffineTransformMakeScale(0.5, 0.5);
     [UIView animateWithDuration:0.1 animations:^{
         self.view.transform = CGAffineTransformIdentity;
-        [kWindow addSubview:self.view];
+        [kWindow.rootViewController.view addSubview:self.view];
         [kWindow.rootViewController addChildViewController:self];
     }];
 }
@@ -105,30 +96,43 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
 #pragma mark - UICollectionViewDataSource
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
-    return self.photos.count;
+    if (self.images.count) {
+        return self.images.count;
+    }else if (self.urls.count) {
+        return self.urls.count;
+    }else if (self.photos.count) {
+        return self.photos.count;
+    }else {
+        return 0;
+    }
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    
-    LFPhotoModel *photoModel = self.photos[indexPath.row];
     LFPhotoBrowserCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:cellIdentifier forIndexPath:indexPath];
     cell.delegate = self;
-    cell.photoModel = photoModel;
+    if (self.images.count) {
+        cell.image = self.images[indexPath.row];
+    }else if (self.urls.count) {
+        cell.url = self.urls[indexPath.row];
+    }else if (self.photos.count) {
+        cell.photoModel = self.photos[indexPath.row];
+    }else {
+    }
     return cell;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView willDisplayCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath
 {
     self.currentIndex = indexPath.item;
-    self.topView.currentIndex = indexPath.row + 1;
+    self.extraView.currentIndex = indexPath.row + 1;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath
 {
     NSIndexPath *currentIndexPath = collectionView.indexPathsForVisibleItems.firstObject;
     self.currentIndex = indexPath.item;
-    self.topView.currentIndex = currentIndexPath.row + 1;
+    self.extraView.currentIndex = currentIndexPath.row + 1;
 }
 
 #pragma mark -
@@ -136,19 +140,6 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
 - (void)didSelectPhotoBrowserCell:(LFPhotoBrowserCell *)cell
 {
     [self hide];
-}
-
-#pragma mark -
-#pragma mark - UIScrollViewDelegate
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView;
-{
-    LFPhotoBrowserCell *item = (LFPhotoBrowserCell *)[self.collectionView cellForItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0]];
-    [item playEnd];//开始拖拽，停止播放
-}
-
-- (void)dealloc
-{
-    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
 }
 
 @end

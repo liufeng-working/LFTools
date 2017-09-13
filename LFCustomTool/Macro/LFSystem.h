@@ -1,19 +1,18 @@
 //
 //  KTSystem.h
-//  KTUAV
 //
 //  Created by 刘丰 on 2017/5/26.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#ifndef KTSystem_h
-#define KTSystem_h
+#ifndef LFSystem_h
+#define LFSystem_h
 
 #pragma mark -
 #pragma mark - 屏幕宽高
 /** 屏幕宽高 */
-#define kScreenWidth ([UIScreen mainScreen].bounds.size.width)
-#define kScreenHeight ([UIScreen mainScreen].bounds.size.height)
+#define kWidth [UIScreen mainScreen].bounds.size.width
+#define kHeight [UIScreen mainScreen].bounds.size.height
 
 #pragma mark -
 #pragma mark - 主窗口
@@ -22,8 +21,13 @@
 
 #pragma mark -
 #pragma mark - 主程序
+/** 主程序代理 */
+#define kAppDelegate ((AppDelegate *)[UIApplication sharedApplication].delegate)
+
+#pragma mark -
+#pragma mark - 主程序
 /** 主程序 */
-#define kApp ((AppDelegate *)[UIApplication sharedApplication].delegate)
+#define kApplication [UIApplication sharedApplication]
 
 #pragma mark -
 #pragma mark - 用户偏好设置
@@ -35,4 +39,4 @@
 /** 通知中心 */
 #define kNotificationCenter [NSNotificationCenter defaultCenter]
 
-#endif /* KTSystem_h */
+#endif /* LFSystem_h */

@@ -16,7 +16,13 @@
  */
 @property(nonatomic,strong) NSArray<UIImage *> *images;
 @property(nonatomic,strong) NSArray<NSURL *> *urls;
-@property(nonatomic,strong) NSArray <LFPhotoModel *>*photos;
+@property(nonatomic,strong) NSArray <LFPhotoModel *> *photos;
+
+/**
+ 图片数组（可以装自己定义的模型，然后实现下面的block，返回模型中可用的字段<UIImage/NSURL>）
+ */
+@property(nonatomic,strong) NSArray <id> *items;
+@property(nonatomic,copy) id (^item_map)(id item);
 
 /**
  当前显示的索引

@@ -42,6 +42,8 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
         extra.totle = self.urls.count;
     }else if (self.photos.count) {
         extra.totle = self.photos.count;
+    }else if (self.items.count) {
+        extra.totle = self.items.count;
     }else {
         extra.totle = 0;
     }
@@ -62,7 +64,7 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     //移动到点击的图片
     [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
     
-    if (self.images.count > 1 || self.urls.count > 1 || self.photos.count > 1) {
+    if (self.images.count > 1 || self.urls.count > 1 || self.photos.count > 1 || self.items.count > 1) {
         _extraView.currentIndex = self.currentIndex + 1;
     }
 }
@@ -102,6 +104,8 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
         return self.urls.count;
     }else if (self.photos.count) {
         return self.photos.count;
+    }else if (self.items.count) {
+        return self.items.count;
     }else {
         return 0;
     }
@@ -117,6 +121,19 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
         cell.url = self.urls[indexPath.row];
     }else if (self.photos.count) {
         cell.photoModel = self.photos[indexPath.row];
+    }else if (self.items.count) {
+        if (self.item_map) {
+            id item = self.item_map(self.items[indexPath.row]);
+            if ([item isKindOfClass:[UIImage class]]) {
+                cell.image = item;
+            }else if ([item isKindOfClass:[NSURL class]]) {
+                cell.url = item;
+            }else {
+                NSAssert(NO, @"block\"item_map\"的返回值应为UIImage或NSURL");
+            }
+        }else {
+            NSAssert(NO, @"使用[LFPhotoBrowserViewController items]，必须实现\"item_map\"");
+        }
     }else {
     }
     return cell;

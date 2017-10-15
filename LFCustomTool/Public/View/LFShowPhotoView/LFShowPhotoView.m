@@ -1,49 +1,28 @@
 //
-//  LFAddPhotoView.m
+//  LFShowPhotoView.m
 //  KTUAV
 //
-//  Created by 刘丰 on 2017/8/29.
+//  Created by 刘丰 on 2017/9/14.
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#import "LFAddPhotoView.h"
-#import "LFAddPhotoCell.h"
+#import "LFShowPhotoView.h"
+#import "LFShowPhotoCell.h"
+#import "LFPhotoBrowserViewController.h"
 
-#define lf_addPhoto_Count self.photos.count
-
-static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
-@interface LFAddPhotoView ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, LFAddPhotoCellDelegate>
+static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
+@interface LFShowPhotoView ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 
 @property(nonatomic,weak) UICollectionView *collectionView;
 
-@property(nonatomic,strong) NSMutableArray<UIImage *> *photos;
-@property(nonatomic,strong,readwrite) NSMutableArray<UIImage *> *images;
-
 @end
 
-@implementation LFAddPhotoView
-
-- (NSMutableArray<UIImage *> *)photos
-{
-    if (!_photos) {
-        _photos = [NSMutableArray array];
-    }
-    return _photos;
-}
-
-- (NSMutableArray<UIImage *> *)images
-{
-    if (!_images) {
-        _images = [NSMutableArray array];
-    }
-    return _images;
-}
+@implementation LFShowPhotoView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         [self setupSubviews];
-        [self setupDefault];
     }
     return self;
 }
@@ -52,7 +31,6 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
     [super awakeFromNib];
     
     [self setupSubviews];
-    [self setupDefault];
 }
 
 - (void)setupSubviews
@@ -67,38 +45,11 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
     collection.showsHorizontalScrollIndicator = NO;
     [self addSubview:collection];
     _collectionView = collection;
-    [collection registerClass:[LFAddPhotoCell class] forCellWithReuseIdentifier:lf_addPhoto_Identifier];
+    [collection registerClass:[LFShowPhotoCell class] forCellWithReuseIdentifier:lf_showPhoto_Identifier];
     
     [collection mas_makeConstraints:^(MASConstraintMaker *make) {
         make.edges.equalTo(self);
     }];
-}
-
-- (void)setupDefault
-{
-    [self.photos addObject:self.addImage];
-}
-
-#pragma mark -
-#pragma mark - 添加一张图
-- (void)addImage:(UIImage *)image
-{
-    [self.photos removeLastObject];
-    [self.photos addObject:image];
-    [self.photos addObject:self.addImage];
-    [self.collectionView reloadData];
-    [self.images addObject:image];
-}
-
-#pragma mark -
-#pragma mark - 添加多张图
-- (void)addImages:(NSArray<UIImage *> *)images
-{
-    [self.photos removeLastObject];
-    [self.photos addObjectsFromArray:images];
-    [self.photos addObject:self.addImage];
-    [self.collectionView reloadData];
-    [self.images addObjectsFromArray:images];
 }
 
 #pragma mark -
@@ -113,7 +64,7 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 }
 
 #pragma mark -
-#pragma mark - 最大个数
+#pragma mark - 列数
 - (NSUInteger)columnCount
 {
     if ([self.dataSource respondsToSelector:@selector(columnCount:)]) {
@@ -169,50 +120,58 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 }
 
 #pragma mark -
-#pragma mark - 添加按钮的图片
-- (UIImage *)addImage
+#pragma mark - 数量
+- (NSUInteger)count
 {
-    if ([self.dataSource respondsToSelector:@selector(addImageInPhotoView:)]) {
-        return [self.dataSource addImageInPhotoView:self];
+    NSUInteger count = 0;
+    if (self.images.count != 0) {
+        count = self.images.count;
+    }else if (self.urls.count != 0) {
+        count = self.urls.count;
+    }else if (self.items.count != 0) {
+        count = self.items.count;
     }else {
-        return [UIImage imageNamed:@"activity_addPhoto"];
+        count = 0;
     }
-}
-
-#pragma mark -
-#pragma mark - 删除按钮的图片
-- (UIImage *)deleteImage
-{
-    if ([self.dataSource respondsToSelector:@selector(deleteImageInPhotoView:)]) {
-        return [self.dataSource deleteImageInPhotoView:self];
-    }else {
-        return [UIImage imageNamed:@"lf_addPhoto_delete"];
-    }
+    
+    return count < self.maxCount ? count : self.maxCount;
 }
 
 #pragma mark -
 #pragma mark - UICollectionViewDelegate, UICollectionViewDataSource
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return lf_addPhoto_Count <= self.maxCount ? lf_addPhoto_Count : self.maxCount;
+    return self.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    LFAddPhotoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:lf_addPhoto_Identifier forIndexPath:indexPath];
-    cell.delegate = self;
-    cell.image = self.photos[indexPath.row];
-    cell.deleteHidden = indexPath.row == lf_addPhoto_Count - 1;
+    LFShowPhotoCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:lf_showPhoto_Identifier forIndexPath:indexPath];
+    if (self.images.count != 0) {
+        cell.image = self.images[indexPath.row];
+    }else if (self.urls.count != 0) {
+        cell.url = self.urls[indexPath.row];
+    }else if (self.items.count != 0) {
+        if (self.item_map) {
+            id item = self.item_map(self.items[indexPath.row]);
+            if ([item isKindOfClass:[UIImage class]]) {
+                cell.image = item;
+            }else if ([item isKindOfClass:[NSURL class]]) {
+                cell.url = item;
+            }else {
+                NSAssert(NO, @"block\"item_map\"的返回值应为UIImage或NSURL");
+            }
+        }else {
+            NSAssert(NO, @"使用[LFShowPhotoView items]，必须实现\"item_map\"");
+        }
+    }
+    
     return cell;
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == lf_addPhoto_Count - 1) {
-        if ([self.delegate respondsToSelector:@selector(photoViewAddPhoto:)]) {
-            [self.delegate photoViewAddPhoto:self];
-        }
+    if ([self.delegate respondsToSelector:@selector(photoView:didSelectAtIndex:)]) {
+        [self.delegate photoView:self didSelectAtIndex:indexPath.row];
     }else {
-        if ([self.delegate respondsToSelector:@selector(photoViewDidSelect:)]) {
-            [self.delegate photoViewDidSelect:self];
-        }
+        
     }
 }
 
@@ -232,23 +191,6 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section {
     return self.columnSpacing;
-}
-
-#pragma mark -
-#pragma mark - LFAddPhotoCellDelegate
-- (void)photoCellDidDelete:(LFAddPhotoCell *)cell
-{
-    [self.photos removeObject:cell.image];
-    [self.images removeObject:cell.image];
-    [self.collectionView reloadData];
-    if ([self.delegate respondsToSelector:@selector(photoViewDidDelete:)]) {
-        [self.delegate photoViewDidDelete:self];
-    }
-}
-
-- (UIImage *)deleteImageInPhotoCell:(LFAddPhotoCell *)cell
-{
-    return self.deleteImage;
 }
 
 @end

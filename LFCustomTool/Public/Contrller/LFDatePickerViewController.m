@@ -160,7 +160,8 @@
     if (self.sure) {
         NSDate *date = self.datePicker.date;
         NSString *dateStr = [self.dateFormatter stringFromDate:date];
-        self.sure(dateStr, date);
+        NSDate *currentDate = [self.dateFormatter dateFromString:dateStr];
+        self.sure(dateStr, currentDate);
     }
 }
 

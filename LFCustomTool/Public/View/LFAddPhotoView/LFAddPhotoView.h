@@ -47,12 +47,12 @@
 /**
  删除某一个
  */
-- (void)photoViewDidDelete:(LFAddPhotoView *)photoView;
+- (void)photoView:(LFAddPhotoView *)photoView didDeleteImage:(UIImage *)image;
 
 /**
  选中某一个
  */
-- (void)photoViewDidSelect:(LFAddPhotoView *)photoView;
+- (void)photoView:(LFAddPhotoView *)photoView didSelectAtIndex:(NSUInteger)index;
 
 @end
 

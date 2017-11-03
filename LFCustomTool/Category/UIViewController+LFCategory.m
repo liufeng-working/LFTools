@@ -63,6 +63,10 @@ static inline void lf_exchangeInstanceMethod(Class class, SEL originalSelector, 
         [self setValue:@1 forKeyPath:@"tableView.sectionFooterHeight"];
         //去除多余的分割线
         [self setValue:UIView.new forKeyPath:@"tableView.tableFooterView"];
+        
+        if (@available(iOS 11.0, *)) {// 适配iOS自动偏移问题
+            [self setValue:@(UIScrollViewContentInsetAdjustmentNever) forKey:@"tableView.contentInsetAdjustmentBehavior"];
+        }
     }
 }
 
@@ -214,7 +218,7 @@ static inline void lf_exchangeInstanceMethod(Class class, SEL originalSelector, 
  *
  *  @param title   标题
  *  @param nameArr 子标题数组
- *  @param com     确认回调
+ *  @param com     选中后的回调
  */
 - (void)showAlertSheetWithTitle:(NSString *)title nameArray:(NSArray <NSString *>*)nameArr withComplete:(void(^)(NSString *selectItem, NSInteger selectIndex))com
 {
@@ -227,7 +231,7 @@ static inline void lf_exchangeInstanceMethod(Class class, SEL originalSelector, 
  @param title 标题
  @param nameArr 子标题数组
  @param cancelBlock 取消回调
- @param com 确认回调
+ @param com 选中后的回调
  */
 - (void)showAlertSheetWithTitle:(NSString *)title nameArray:(NSArray <NSString *>*)nameArr cancelBlock:(void(^)())cancelBlock withComplete:(void(^)(NSString *selectItem, NSInteger selectIndex))com
 {
@@ -308,29 +312,45 @@ static inline void lf_exchangeInstanceMethod(Class class, SEL originalSelector, 
 {
     objc_setAssociatedObject(self, &imagePickerCompletion, com, OBJC_ASSOCIATION_COPY_NONATOMIC);
     [self showAlertSheetWithTitle:@"选择图片" nameArray:@[@"相册", @"相机"] withComplete:^(NSString *selectItem, NSInteger selectIndex) {
-        if ([selectItem isEqualToString:@"相册"]) {
+        UIImagePickerControllerSourceType sourceType = selectIndex == 0 ? UIImagePickerControllerSourceTypeSavedPhotosAlbum : UIImagePickerControllerSourceTypeCamera;
+        
+        void(^jumoFail)(void) = ^{
+            [self showAlertViewWithTitle:@"温馨提示" message:@"无法跳转到设置页面，请手动前往设置" sureTitle:@"知道了" withComplete:nil];
+        };
+        
+        if (sourceType == UIImagePickerControllerSourceTypeSavedPhotosAlbum) {
             if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusDenied) {
-                [LFNotification autoHideWithText:@"请先设置相册访问权限"];
-            }else {
-                UIImagePickerController *pickerC = [[UIImagePickerController alloc] init];
-                pickerC.delegate = self;
-                pickerC.allowsEditing = YES;
-                pickerC.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
-                [self presentViewController:pickerC animated:YES completion:nil];
+                [self showAlertViewWithTitle:@"温馨提示" message:@"相册访问受限，请先设置相册权限" cancelTitle:@"算了" sureTitle:@"去设置" withComplete:^{
+                    [LFFormTool jumpToSetting:jumoFail];
+                }];
+                return ;
+            }
+            
+            if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum]) {
+                [self showAlertViewWithTitle:@"温馨提示" message:@"相册不可用" sureTitle:@"知道了" withComplete:nil];
+                return;
             }
         }
         
-        if ([selectItem isEqualToString:@"相机"]) {
+        if (sourceType == UIImagePickerControllerSourceTypeCamera) {
             if ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo] == AVAuthorizationStatusDenied) {
-                [LFNotification autoHideWithText:@"请先设置相机访问权限"];
-            }else {
-                UIImagePickerController *pickerC = [[UIImagePickerController alloc] init];
-                pickerC.delegate = self;
-                pickerC.allowsEditing = YES;
-                pickerC.sourceType = UIImagePickerControllerSourceTypeCamera;
-                [self presentViewController:pickerC animated:YES completion:nil];
+                [self showAlertViewWithTitle:@"温馨提示" message:@"相机使用受限，请先设置相机权限" cancelTitle:@"算了" sureTitle:@"去设置" withComplete:^{
+                    [LFFormTool jumpToSetting:jumoFail];
+                }];
+                return ;
+            }
+            
+            if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+                [self showAlertViewWithTitle:@"温馨提示" message:@"相机不可用" sureTitle:@"知道了" withComplete:nil];
+                return;
             }
         }
+        
+        UIImagePickerController *pickerC = [[UIImagePickerController alloc] init];
+        pickerC.delegate = self;
+        pickerC.allowsEditing = YES;
+        pickerC.sourceType = sourceType;
+        [self presentViewController:pickerC animated:YES completion:nil];
     }];
 }
 

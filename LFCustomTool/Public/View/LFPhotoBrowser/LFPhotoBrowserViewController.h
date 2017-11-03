@@ -21,7 +21,7 @@
 /**
  图片数组（可以装自己定义的模型，然后实现下面的block，返回模型中可用的字段<UIImage/NSURL>）
  */
-@property(nonatomic,strong) NSArray <id> *items;
+@property(nonatomic,strong) NSArray<id> *items;
 @property(nonatomic,copy) id (^item_map)(id item);
 
 /**

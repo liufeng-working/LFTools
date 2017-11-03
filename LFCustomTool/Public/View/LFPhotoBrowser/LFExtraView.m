@@ -7,6 +7,7 @@
 //
 
 #import "LFExtraView.h"
+#import "Masonry.h"
 
 @interface LFExtraView ()
 

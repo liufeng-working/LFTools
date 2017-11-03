@@ -33,6 +33,9 @@ typedef NS_ENUM(NSInteger, UIDeviceType){
     UIDeviceType_iPhone_SE,
     UIDeviceType_iPhone_7,
     UIDeviceType_iPhone_7_Plus,
+    UIDeviceType_iPhone_8,
+    UIDeviceType_iPhone_8_Plus,
+    UIDeviceType_iPhone_X,
     
     //iPod Touch
     UIDeviceType_iPod_touch,
@@ -91,6 +94,9 @@ typedef NS_ENUM(NSInteger, UIDeviceType){
 #define IPHONE_SE        @"iPhone SE"
 #define IPHONE_7         @"iPhone 7"
 #define IPHONE_7Plus     @"iPhone 7 Plus"
+#define IPHONE_8         @"iPhone 8"
+#define IPHONE_8Plus     @"iPhone 8 Plus"
+#define IPHONE_X         @"iPhone X"
 
 //iPod touch
 #define IPOD_TOUCH       @"iPod touch"

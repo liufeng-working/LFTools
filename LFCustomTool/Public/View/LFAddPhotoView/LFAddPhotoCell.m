@@ -60,7 +60,7 @@
     _image = image;
     
     self.imageView.image = image;
-    [self.deleteBtn setImage:[self.delegate deleteImageInPhotoCell:self] forState:UIControlStateNormal];
+    [self.deleteBtn setImage:[self.delegate addPhotoCellImageOfDelete:self] forState:UIControlStateNormal];
 }
 
 - (void)setDeleteHidden:(BOOL)deleteHidden
@@ -73,8 +73,8 @@
 #pragma mark -
 #pragma mark - 删除
 - (void)deleteImage:(UIButton *)sender {
-    if ([self.delegate respondsToSelector:@selector(photoCellDidDelete:)]) {
-        [self.delegate photoCellDidDelete:self];
+    if ([self.delegate respondsToSelector:@selector(addPhotoCellDidDelete:)]) {
+        [self.delegate addPhotoCellDidDelete:self];
     }
 }
 

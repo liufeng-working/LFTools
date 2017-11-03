@@ -6,7 +6,7 @@
 //  Copyright © 2017年 liufeng. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @interface LFPhotoModel : NSObject
 

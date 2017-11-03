@@ -23,19 +23,26 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
     self = [super initWithFrame:frame];
     if (self) {
         [self setupSubviews];
+        [self defaultSetting];
     }
     return self;
 }
 
-- (void)awakeFromNib {
-    [super awakeFromNib];
-    
-    [self setupSubviews];
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        
+        [self setupSubviews];
+        [self defaultSetting];
+    }
+    return self;
 }
 
 - (void)setupSubviews
 {
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
+    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     UICollectionView *collection = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
     collection.backgroundColor = [UIColor whiteColor];
     collection.delegate = self;
@@ -52,12 +59,17 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
     }];
 }
 
+- (void)defaultSetting
+{
+    _photoBrowserEnable = YES;
+}
+
 #pragma mark -
 #pragma mark - 最大个数
 - (NSUInteger)maxCount
 {
-    if ([self.dataSource respondsToSelector:@selector(maxCount:)]) {
-        return [self.dataSource maxCount:self];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewMaxCount:)]) {
+        return [self.dataSource showPhotoViewMaxCount:self];
     }else {
         return 3;
     }
@@ -67,8 +79,8 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 #pragma mark - 列数
 - (NSUInteger)columnCount
 {
-    if ([self.dataSource respondsToSelector:@selector(columnCount:)]) {
-        return [self.dataSource columnCount:self];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewColumnCount:)]) {
+        return [self.dataSource showPhotoViewColumnCount:self];
     }else {
         return 3;
     }
@@ -78,20 +90,20 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 #pragma mark - 每个位置cell的size
 - (CGSize)sizeAtIndex:(NSUInteger)index
 {
-    if ([self.dataSource respondsToSelector:@selector(photoView:sizeAtIndex:)]) {
-        return [self.dataSource photoView:self sizeAtIndex:index];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoView:sizeAtIndex:)]) {
+        return [self.dataSource showPhotoView:self sizeAtIndex:index];
     }else {
-        CGFloat itemW = (CGRectGetWidth(self.frame) - self.inset.left - self.inset.right - (self.columnCount - 1)*self.columnSpacing - 1)/self.columnCount;
+        CGFloat itemW = (CGRectGetWidth(self.frame) - self.insets.left - self.insets.right - (self.columnCount - 1)*self.columnSpacing - 1)/self.columnCount;
         return CGSizeMake(itemW, itemW);
     }
 }
 
 #pragma mark -
 #pragma mark - 上下左右间距
-- (UIEdgeInsets)inset
+- (UIEdgeInsets)insets
 {
-    if ([self.dataSource respondsToSelector:@selector(insetInPhotoView:)]) {
-        return [self.dataSource insetInPhotoView:self];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewInsets:)]) {
+        return [self.dataSource showPhotoViewInsets:self];
     }else {
         return UIEdgeInsetsMake(0, 0, 0, 0);
     }
@@ -101,8 +113,8 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 #pragma mark - 列间距
 - (CGFloat)columnSpacing
 {
-    if ([self.dataSource respondsToSelector:@selector(columnSpacingInPhotoView:)]) {
-        return [self.dataSource columnSpacingInPhotoView:self];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewColumnSpacing:)]) {
+        return [self.dataSource showPhotoViewColumnSpacing:self];
     }else {
         return 10.f;
     }
@@ -112,8 +124,8 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 #pragma mark - 行间距
 - (NSUInteger)rowSpacing
 {
-    if ([self.dataSource respondsToSelector:@selector(rowSpacingInPhotoView:)]) {
-        return [self.dataSource rowSpacingInPhotoView:self];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewRowSpacing:)]) {
+        return [self.dataSource showPhotoViewRowSpacing:self];
     }else {
         return 10.f;
     }
@@ -168,6 +180,19 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.photoBrowserEnable) {
+        LFPhotoBrowserViewController *pbVC = [[LFPhotoBrowserViewController alloc] init];
+        pbVC.currentIndex = indexPath.row;
+        if (self.images.count != 0) {
+            pbVC.images = self.images;
+        }else if (self.urls.count != 0) {
+            pbVC.urls = self.urls;
+        }else if (self.items.count != 0) {
+            pbVC.items = self.items;
+            pbVC.item_map = self.item_map;
+        }
+        [pbVC show];
+    }
     if ([self.delegate respondsToSelector:@selector(photoView:didSelectAtIndex:)]) {
         [self.delegate photoView:self didSelectAtIndex:indexPath.row];
     }else {
@@ -182,7 +207,7 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 }
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
-    return self.inset;
+    return self.insets;
 }
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section {

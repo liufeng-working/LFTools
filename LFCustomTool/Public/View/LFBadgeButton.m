@@ -1,6 +1,6 @@
 //
 //  LFBadgeButton.m
-//  LFJXStreet
+//
 //
 //  Created by 刘丰 on 2017/1/17.
 //  Copyright © 2017年 liufeng. All rights reserved.
@@ -11,9 +11,10 @@
 #define kFontSize [UIFont systemFontOfSize:(self.titleLabel.font.pointSize - 3)]
 #define kDotSize 10
 #define kMaxNum 99
+#define kNewWord @"new"
 @interface LFBadgeButton ()
 
-@property(nonatomic,weak) UILabel *badgeLabel;
+@property(nonatomic,weak,readwrite) UILabel *badgeLabel;
 
 @end
 
@@ -28,8 +29,6 @@
         badge.font = kFontSize;
         badge.textAlignment = NSTextAlignmentCenter;
         badge.layer.masksToBounds = YES;
-        badge.layer.borderColor = [UIColor redColor].CGColor;
-        badge.layer.borderWidth = 1;;
         [self addSubview:badge];
         _badgeLabel = badge;
     }
@@ -39,11 +38,26 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        _type = LFBadgeButtonTypeNum;
-        _position = LFBadgeButtonPositionTopRight;
-        _offset = LFBadgeButtonOffsetNone;
+        [self setupDefault];
     }
     return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        [self setupDefault];
+    }
+    return self;
+}
+
+- (void)setupDefault
+{
+    _type = LFBadgeButtonTypeNum;
+    _position = LFBadgeButtonPositionTopRight;
+    _offset = LFBadgeButtonOffsetHalf;
+    _above = LFBadgeButtonAboveTitle;
 }
 
 - (void)setBadge:(NSInteger)badge
@@ -70,6 +84,13 @@
 - (void)setOffset:(LFBadgeButtonOffset)offset
 {
     _offset = offset;
+    
+    [self setNeedsLayout];
+}
+
+- (void)setAbove:(LFBadgeButtonAbove)above
+{
+    _above = above;
     
     [self setNeedsLayout];
 }
@@ -116,6 +137,17 @@
             cornerRadius = realW*0.5;
         }
             break;
+            
+        case LFBadgeButtonTypeNew: {
+            CGSize badgeS = [self size:kNewWord];
+            CGFloat badgeW = badgeS.width;
+            CGFloat badgeH = badgeS.height;
+            realW = badgeW + 5;
+            realH = badgeH;
+            cornerRadius = MIN(realW, realH)*0.5;
+            self.badgeLabel.text = kNewWord;
+        }
+            break;
     }
     
     CGFloat hSpace/*横向留白*/, vSpace/*纵向留白*/;
@@ -131,7 +163,7 @@
             vSpace = realH*0.5;
         }
             break;
-        case LFBadgeButtonOffsetAll: {
+        default: {
             hSpace = realW;
             vSpace = realH;
         }
@@ -139,21 +171,38 @@
     }
     
     CGRect baseR;
-    if (self.currentImage) {
-        baseR = self.imageView.frame;
-    }else if (self.currentTitle) {
-        baseR = self.titleLabel.frame;
-    }else {
-        baseR = CGRectMake(0, 0, CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
+    
+    switch (self.above) {
+        case LFBadgeButtonAboveTitle: {
+            if (self.currentTitle) {
+                baseR = self.titleLabel.frame;
+            }else if (self.currentImage) {
+                baseR = self.imageView.frame;
+            }else {
+                baseR = CGRectMake(0, 0, CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
+            }
+        }
+            break;
+        case LFBadgeButtonAboveImage: {
+            if (self.currentImage) {
+                baseR = self.imageView.frame;
+            }else if (self.currentTitle) {
+                baseR = self.titleLabel.frame;
+            }else {
+                baseR = CGRectMake(0, 0, CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
+            }
+        }
+            break;
+        default: {
+            baseR = CGRectMake(0, 0, CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds));
+        }
+            break;
     }
     
     self.badgeLabel.hidden = NO;
     self.badgeLabel.layer.cornerRadius = cornerRadius;
     
     switch (self.position) {
-        case LFBadgeButtonPositionTopRight:
-            self.badgeLabel.frame = CGRectMake(CGRectGetMaxX(baseR) - realW + hSpace, CGRectGetMinY(baseR) - vSpace, realW, realH);
-            break;
         case LFBadgeButtonPositionTopRight_Left:
             self.badgeLabel.frame = CGRectMake(CGRectGetMidX(baseR) + (CGRectGetWidth(baseR) - realW)*0.25, CGRectGetMinY(baseR) - vSpace, realW, realH);
             break;
@@ -202,6 +251,9 @@
         case LFBadgeButtonPositionCenter:
             self.badgeLabel.frame = CGRectMake(CGRectGetMidX(baseR) - realW*0.5, CGRectGetMidY(baseR) - realH*0.5, realW, realH);
             break;
+        default:// LFBadgeButtonPositionTopRight
+            self.badgeLabel.frame = CGRectMake(CGRectGetMaxX(baseR) - realW + hSpace, CGRectGetMinY(baseR) - vSpace, realW, realH);
+            break;
     }
 }
 
@@ -220,7 +272,7 @@
 
 - (CGSize)size:(NSString *)string
 {
-    return [string boundingRectWithSize:CGSizeMake(MAXFLOAT, kFontSize.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: kFontSize} context:nil].size;
+    return [string boundingRectWithSize:CGSizeMake(MAXFLOAT, self.badgeLabel.font.lineHeight) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: self.badgeLabel.font} context:nil].size;
 }
 
 @end

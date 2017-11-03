@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
+
 @protocol LFShowPhotoViewDelegate;
 @protocol LFShowPhotoViewDataSource;
 @interface LFShowPhotoView : UIView
@@ -15,8 +17,8 @@
 /**
  代理
  */
-@property(nonatomic,weak) id<LFShowPhotoViewDelegate> delegate;
-@property(nonatomic,weak) id<LFShowPhotoViewDataSource> dataSource;
+@property(nonatomic,weak) IBOutlet id<LFShowPhotoViewDelegate> delegate;
+@property(nonatomic,weak) IBOutlet id<LFShowPhotoViewDataSource> dataSource;
 
 /**
  图片数组（选择其中一个赋值）
@@ -29,6 +31,11 @@
  */
 @property(nonatomic,strong) NSArray <id> *items;
 @property(nonatomic,copy) id (^item_map)(id item);
+
+/**
+ 图片浏览器是否可用（默认YES）
+ */
+@property(nonatomic,assign) BOOL photoBrowserEnable;
 
 @end
 
@@ -51,41 +58,33 @@
 /**
  最大个数（默认3个）
  */
-- (NSUInteger)maxCount:(LFShowPhotoView *)photoView;
+- (NSUInteger)showPhotoViewMaxCount:(LFShowPhotoView *)photoView;
 
 /**
  列数（默认3个）
  */
-- (NSUInteger)columnCount:(LFShowPhotoView *)photoView;
+- (NSUInteger)showPhotoViewColumnCount:(LFShowPhotoView *)photoView;
 
 /**
  每个位置cell的size
  */
-- (CGSize)photoView:(LFShowPhotoView *)photoView sizeAtIndex:(NSUInteger)index;
+- (CGSize)showPhotoView:(LFShowPhotoView *)photoView sizeAtIndex:(NSUInteger)index;
 
 /**
  上下左右间距（默认{0, 0, 0, 0}）
  */
-- (UIEdgeInsets)insetInPhotoView:(LFShowPhotoView *)photoView;
+- (UIEdgeInsets)showPhotoViewInsets:(LFShowPhotoView *)photoView;
 
 /**
  列间距（默认10）
  */
-- (CGFloat)columnSpacingInPhotoView:(LFShowPhotoView *)photoView;
+- (CGFloat)showPhotoViewColumnSpacing:(LFShowPhotoView *)photoView;
 
 /**
  行间距（默认10）
  */
-- (CGFloat)rowSpacingInPhotoView:(LFShowPhotoView *)photoView;
-
-/**
- 添加按钮的图片
- */
-- (UIImage *)addImageInPhotoView:(LFShowPhotoView *)photoView;
-
-/**
- 删除按钮的图片
- */
-- (UIImage *)deleteImageInPhotoView:(LFShowPhotoView *)photoView;
+- (CGFloat)showPhotoViewRowSpacing:(LFShowPhotoView *)photoView;
 
 @end
+
+NS_ASSUME_NONNULL_END

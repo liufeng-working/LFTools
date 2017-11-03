@@ -273,6 +273,12 @@
     if ([platform isEqualToString:@"iPhone9,2"])  return @"iPhone 7 Plus";
     if ([platform isEqualToString:@"iPhone9,3"])  return @"iPhone 7";
     if ([platform isEqualToString:@"iPhone9,4"])  return @"iPhone 7 Plus";
+    if ([platform isEqualToString:@"iPhone10,1"])  return @"iPhone 8";
+    if ([platform isEqualToString:@"iPhone10,2"])  return @"iPhone 8 Plus";
+    if ([platform isEqualToString:@"iPhone10,3"])  return @"iPhone X";
+    if ([platform isEqualToString:@"iPhone10,4"])  return @"iPhone 8";
+    if ([platform isEqualToString:@"iPhone10,5"])  return @"iPhone 8 Plus";
+    if ([platform isEqualToString:@"iPhone10,6"])  return @"iPhone X";
     
     //iPod Touch
     if ([platform isEqualToString:@"iPod1,1"])    return @"iPod touch";
@@ -363,6 +369,12 @@
     if ([platform isEqualToString:@"iPhone9,2"])  return UIDeviceType_iPhone_7_Plus;
     if ([platform isEqualToString:@"iPhone9,3"])  return UIDeviceType_iPhone_7;
     if ([platform isEqualToString:@"iPhone9,4"])  return UIDeviceType_iPhone_7_Plus;
+    if ([platform isEqualToString:@"iPhone10,1"])  return UIDeviceType_iPhone_8;
+    if ([platform isEqualToString:@"iPhone10,2"])  return UIDeviceType_iPhone_8_Plus;
+    if ([platform isEqualToString:@"iPhone10,3"])  return UIDeviceType_iPhone_X;
+    if ([platform isEqualToString:@"iPhone10,4"])  return UIDeviceType_iPhone_8;
+    if ([platform isEqualToString:@"iPhone10,5"])  return UIDeviceType_iPhone_8_Plus;
+    if ([platform isEqualToString:@"iPhone10,6"])  return UIDeviceType_iPhone_X;
     
     //iPod Touch
     if ([platform isEqualToString:@"iPod1,1"])    return UIDeviceType_iPod_touch;
@@ -442,6 +454,12 @@
         case UIDeviceType_iPhone_SE:     return IPHONE_SE;
         case UIDeviceType_iPhone_7:     return IPHONE_7;
         case UIDeviceType_iPhone_7_Plus:return IPHONE_7Plus;
+        case UIDeviceType_iPhone_8:     return IPHONE_8;
+        case UIDeviceType_iPhone_8_Plus:return IPHONE_8Plus;
+        case UIDeviceType_iPhone_X:     return IPHONE_X;
+        case UIDeviceType_iPhone_8:     return IPHONE_8;
+        case UIDeviceType_iPhone_8_Plus:return IPHONE_8Plus;
+        case UIDeviceType_iPhone_X:     return IPHONE_X;
             
             //iPod Touch
         case UIDeviceType_iPod_touch:    return IPOD_TOUCH;

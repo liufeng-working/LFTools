@@ -8,9 +8,12 @@
 
 #import "LFTextView.h"
 
+NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholderHiddenNotification";
 @interface LFTextView ()
 
 @property(nonatomic,weak) UILabel *phLabel;
+
+@property(nonatomic,assign) CGFloat lastHeight;
 
 @end
 
@@ -21,6 +24,7 @@
     if (!_phLabel) {
         UILabel *phLabel = [[UILabel alloc] init];
         phLabel.textColor = [UIColor grayColor];
+        phLabel.textAlignment = self.textAlignment;
         phLabel.font = self.font;
         [self addSubview:phLabel];
         _phLabel = phLabel;
@@ -31,9 +35,24 @@
 - (instancetype)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textDidChange) name:UITextViewTextDidChangeNotification object:nil];
+        [self setupDefault];
     }
     return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
+    if (self) {
+        [self setupDefault];
+    }
+    return self;
+}
+
+- (void)setupDefault
+{
+    _lastHeight = 0;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textDidChange) name:UITextViewTextDidChangeNotification object:nil];
 }
 
 - (void)setPlaceholder:(NSString *)placeholder
@@ -41,27 +60,37 @@
     _placeholder = placeholder;
     
     self.phLabel.text = placeholder;
-
 }
 
-- (void)setFont:(UIFont *)font
+- (void)setAttributedPlaceholder:(NSAttributedString *)attributedPlaceholder
 {
+    _attributedPlaceholder = attributedPlaceholder;
+    
+    self.phLabel.attributedText = attributedPlaceholder;
+}
+
+- (CGFloat)fitHeight
+{
+    [self.superview layoutIfNeeded];
+    self.scrollEnabled = NO;
+    return [self sizeThatFits:CGSizeMake(CGRectGetWidth(self.frame), CGFLOAT_MAX)].height;
+}
+
+- (void)setTextAlignment:(NSTextAlignment)textAlignment {
+    [super setTextAlignment:textAlignment];
+    
+    self.phLabel.textAlignment = textAlignment;
+}
+
+- (void)setFont:(UIFont *)font {
     [super setFont:font];
     
     self.phLabel.font = font;
 }
 
-- (void)setText:(NSString *)text
-{
-    [super setText:text];
-    
-    //有内容，占位符隐藏
-    [self textDidChange];
-}
-
-- (void)setAttributedText:(NSAttributedString *)attributedText
-{
+- (void)setAttributedText:(NSAttributedString *)attributedText {
     [super setAttributedText:attributedText];
+    self.font = self.phLabel.font;
     
     //有内容，占位符隐藏
     [self textDidChange];
@@ -72,7 +101,7 @@
     
     [self.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if ([obj isKindOfClass:NSClassFromString(@"_UITextContainerView")]) {
-            self.phLabel.frame = CGRectMake(5, 0, obj.width - 5, obj.height);
+            self.phLabel.frame = CGRectMake(self.textContainerInset.left + 5, self.textContainerInset.top, obj.width - self.textContainerInset.left - self.textContainerInset.right - 10, self.font.lineHeight);
             *stop = YES;
         }
     }];
@@ -82,7 +111,17 @@
 #pragma mark - 监测内容改变
 - (void)textDidChange
 {
-    self.phLabel.hidden = self.hasText;
+    BOOL isHidden = self.hasText || self.attributedText.length != 0;
+    self.phLabel.hidden = isHidden;
+    [[NSNotificationCenter defaultCenter] postNotificationName:LFTextViewPlaceholderHiddenNotification object:@(isHidden)];
+    
+    if (self.lfTextViewFitHeight) {
+        self.scrollEnabled = NO;
+        if (self.fitHeight != self.lastHeight) {
+            self.lfTextViewFitHeight(self.fitHeight);
+            self.lastHeight = self.fitHeight;
+        }
+    }
 }
 
 #pragma mark -

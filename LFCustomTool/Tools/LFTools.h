@@ -61,6 +61,6 @@
  
  @param failure 失败回调
  */
-+ (void)gotoiPhoneSettingFailure:(void(^)())failure;
++ (void)jumpToiPhoneSetting:(void(^)())failure;
 
 @end

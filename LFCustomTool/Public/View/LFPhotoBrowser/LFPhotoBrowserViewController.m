@@ -9,10 +9,12 @@
 #import "LFPhotoBrowserViewController.h"
 #import "LFPhotoBrowserCell.h"
 #import "LFExtraView.h"
+#import "Masonry.h"
 
 #define lf_screenWidth ([UIScreen mainScreen].bounds.size.width)
 #define lf_screenHeight ([UIScreen mainScreen].bounds.size.height)
 #define lf_extraViewHeight 44
+#define lf_window ([UIApplication sharedApplication].delegate.window)
 @interface LFPhotoBrowserViewController ()<LFPhotoBrowserCellDelegate>
 
 @property(nonatomic,weak) LFExtraView *extraView;
@@ -76,8 +78,8 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     self.view.transform = CGAffineTransformMakeScale(0.5, 0.5);
     [UIView animateWithDuration:0.1 animations:^{
         self.view.transform = CGAffineTransformIdentity;
-        [kWindow.rootViewController.view addSubview:self.view];
-        [kWindow.rootViewController addChildViewController:self];
+        [lf_window.rootViewController.view addSubview:self.view];
+        [lf_window.rootViewController addChildViewController:self];
     }];
 }
 

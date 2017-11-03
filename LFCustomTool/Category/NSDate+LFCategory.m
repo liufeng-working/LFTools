@@ -261,54 +261,36 @@
  */
 - (NSString *)dateToCurrentDate:(NSDate *)currentDate
 {
-    NSDateComponents *com = [NSDate componentsWithStartDate:self toDate:currentDate];
-    
+    NSDate *createDate = [NSDate dateWithTimeIntervalSince1970:from/1000];
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-    if (com.year < 0   ||
-        com.month < 0  ||
-        com.day < 0    ||
-        com.hour < 0   ||
-        com.minute < 0 ||
-        com.second < 0) {
+    
+    NSTimeInterval interval = (to - from)/1000;
+    if (interval < 0) {
         return @"穿越了";
-    }else if (com.year == 0 &&
-              com.month == 0 &&
-              com.day == 0 &&
-              com.hour == 0 &&
-              com.minute == 0 &&
-              com.second < 10) {
+    }else if (interval < 10) {
         return @"刚刚";
-    }else if (com.year == 0 &&
-              com.month == 0 &&
-              com.day == 0 &&
-              com.hour == 0 &&
-              com.minute == 0) {
-        return [NSString stringWithFormat:@"%ld秒前", (long)com.second];;
-    }else if (com.year == 0  &&
-              com.month == 0 &&
-              com.day == 0   &&
-              com.hour == 0) {
-        return [NSString stringWithFormat:@"%ld分钟前", (long)com.minute];
-    }else if (com.year == 0  &&
-              com.month == 0 &&
-              com.day == 0) {
-        return [NSString stringWithFormat:@"%ld小时前",(long)com.hour];
-    }else if (com.year == 0  &&
-              com.month == 0 &&
-              com.day == 1) {
+    }else if (interval < 60) {
+        return [NSString stringWithFormat:@"%.f秒前", interval];
+    }else if (interval < 60*60) {
+        return [NSString stringWithFormat:@"%.f分钟前", interval/60];
+    }else if (interval < 60*60*24) {
+        return [NSString stringWithFormat:@"%.f小时前", interval/60/60];
+    }else if (interval < 60*60*24*2) {
         dateFormatter.dateFormat = @"昨天 HH:mm";
-        return [dateFormatter stringFromDate:fromDate];
-    }else if (com.year == 0  &&
-              com.month == 0 &&
-              com.day == 2) {
+        return [dateFormatter stringFromDate:createDate];
+    }else if (interval < 60*60*24*3) {
         dateFormatter.dateFormat = @"前天 HH:mm";
-        return [dateFormatter stringFromDate:fromDate];
-    }else if (com.year == 0) {
-        dateFormatter.dateFormat = @"MM-dd HH:mm";
-        return [dateFormatter stringFromDate:fromDate];
+        return [dateFormatter stringFromDate:createDate];
     }else {
-        dateFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
-        return [dateFormatter stringFromDate:fromDate];
+        NSDate *currentDate = [NSDate dateWithTimeIntervalSince1970:to/1000];
+        NSDateComponents *com = [self.calendar components:NSCalendarUnitYear fromDate:createDate toDate:currentDate options:NSCalendarWrapComponents];
+        if (com == 0) {
+            dateFormatter.dateFormat = @"MM-dd HH:mm";
+            return [dateFormatter stringFromDate:createDate];
+        }else {
+            dateFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
+            return [dateFormatter stringFromDate:createDate];
+        }
     }
 }
 

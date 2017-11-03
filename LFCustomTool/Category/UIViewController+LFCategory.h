@@ -83,7 +83,7 @@ typedef void(^KTImagePickerCompletion)(UIImage *originalImage, UIImage *editedIm
  *
  *  @param title   标题
  *  @param nameArr 子标题数组
- *  @param com     确认回调
+ *  @param com     选中后的回调
  */
 - (void)showAlertSheetWithTitle:(NSString *)title nameArray:(NSArray <NSString *>*)nameArr withComplete:(void(^)(NSString *selectItem, NSInteger selectIndex))com;
 
@@ -93,7 +93,7 @@ typedef void(^KTImagePickerCompletion)(UIImage *originalImage, UIImage *editedIm
  @param title 标题
  @param nameArr 子标题数组
  @param cancelBlock 取消回掉
- @param com 确认回掉
+ @param com 选中后的回调
  */
 - (void)showAlertSheetWithTitle:(NSString *)title nameArray:(NSArray <NSString *>*)nameArr cancelBlock:(void(^)())cancelBlock withComplete:(void(^)(NSString *selectItem, NSInteger selectIndex))com;
 

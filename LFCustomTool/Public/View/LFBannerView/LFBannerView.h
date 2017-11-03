@@ -9,12 +9,14 @@
 #import <UIKit/UIKit.h>
 #import "LFBannerModel.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 @protocol LFBannerViewDelegate;
 @interface LFBannerView : UIView
 
 @property(nonatomic,strong) NSArray<LFBannerModel *> *banners;
 
-@property(nonatomic,weak) id<LFBannerViewDelegate> delegate;
+@property(nonatomic,weak) IBOutlet id<LFBannerViewDelegate> delegate;
 
 /**
  打开／销毁定时器
@@ -30,3 +32,5 @@
 - (void)bannerView:(LFBannerView *)banner didSelectItemAtIndex:(NSInteger)index bannerModel:(LFBannerModel *)bannerModel;
 
 @end
+
+NS_ASSUME_NONNULL_END

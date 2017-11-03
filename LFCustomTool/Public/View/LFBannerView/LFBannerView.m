@@ -80,17 +80,20 @@ static NSString *const cellIdentifier = @"LFBannerCell";
     return _extraView;
 }
 
-- (void)awakeFromNib {
-    [super awakeFromNib];
-    
-    self.backgroundColor = [UIColor clearColor];
-    
-    [self.collectionView registerClass:[LFBannerCell class] forCellWithReuseIdentifier:cellIdentifier];
-}
-
 - (instancetype)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
+    if (self) {
+        self.backgroundColor = [UIColor clearColor];
+        
+        [self.collectionView registerClass:[LFBannerCell class] forCellWithReuseIdentifier:cellIdentifier];
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super initWithCoder:coder];
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         
@@ -119,6 +122,10 @@ static NSString *const cellIdentifier = @"LFBannerCell";
 {
     _banners = banners;
     
+    if (banners.count == 0) {
+        return;
+    }
+
     NSMutableArray *temArr = banners.mutableCopy;
     [temArr addObject:banners.firstObject];
     [temArr insertObject:banners.lastObject atIndex:0];

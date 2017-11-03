@@ -160,17 +160,20 @@
  
  @param failure 失败回调
  */
-+ (void)gotoiPhoneSettingFailure:(void(^)())failure
++ (void)jumpToiPhoneSetting:(void(^)())failure
 {
+    UIApplication *app = [UIApplication sharedApplication];
     NSURL *settingUrl = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-    if ([[UIApplication sharedApplication] canOpenURL:settingUrl]) {//可以打开设置
-        UIApplication *app = [UIApplication sharedApplication];
-        if ([app respondsToSelector:@selector(openURL:)]) {// >=ios10版本
-            [app openURL:settingUrl];
-        }else {// <iOS10版本
-            [app openURL:settingUrl options:@{} completionHandler:nil];
+    if ([app canOpenURL:settingUrl]) {
+        if ([app respondsToSelector:@selector(openURL:)]) {                            [app openURL:settingUrl];
+        }else {
+            [app openURL:settingUrl options:@{} completionHandler:^(BOOL success) {
+                if (!success && failure) {
+                    failure();
+                }
+            }];
         }
-    }else {//不可以打开设置
+    }else {
         if (failure) {
             failure();
         }

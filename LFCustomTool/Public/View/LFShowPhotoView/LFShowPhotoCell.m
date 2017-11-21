@@ -39,9 +39,14 @@
     [self.contentView addSubview:imageView];
     _imageView = imageView;
     
-    [imageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self);
-    }];
+    // 添加约束
+    imageView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSDictionary *views = NSDictionaryOfVariableBindings(imageView);
+    NSArray *hC = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[imageView]-0-|" options:0 metrics:nil views:views];
+    [self.contentView addConstraints:hC];
+    
+    NSArray *vC = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[imageView]-0-|" options:0 metrics:nil views:views];
+    [self.contentView addConstraints:vC];
 }
 
 - (void)setImage:(UIImage *)image

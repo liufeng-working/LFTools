@@ -8,7 +8,6 @@
 
 #import "LFTextView.h"
 
-NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholderHiddenNotification";
 @interface LFTextView ()
 
 @property(nonatomic,weak) UILabel *phLabel;
@@ -52,6 +51,8 @@ NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholde
 - (void)setupDefault
 {
     _lastHeight = 0;
+    _placeholderHidden = NO;
+    self.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textDidChange) name:UITextViewTextDidChangeNotification object:nil];
 }
 
@@ -67,6 +68,24 @@ NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholde
     _attributedPlaceholder = attributedPlaceholder;
     
     self.phLabel.attributedText = attributedPlaceholder;
+}
+
+- (void)setLfTextViewPlaceholderHidden:(void (^)(BOOL))lfTextViewPlaceholderHidden {
+    _lfTextViewPlaceholderHidden = lfTextViewPlaceholderHidden;
+    
+    if (lfTextViewPlaceholderHidden) {
+        lfTextViewPlaceholderHidden(self.isPlaceholderHidden);
+    }
+}
+
+- (void)setLfTextViewFitHeight:(void (^)(CGFloat))lfTextViewFitHeight
+{
+    _lfTextViewFitHeight = lfTextViewFitHeight;
+    
+    if (lfTextViewFitHeight) {
+        lfTextViewFitHeight(self.fitHeight);
+        self.lastHeight = self.fitHeight;
+    }
 }
 
 - (CGFloat)fitHeight
@@ -99,12 +118,7 @@ NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholde
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    [self.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj isKindOfClass:NSClassFromString(@"_UITextContainerView")]) {
-            self.phLabel.frame = CGRectMake(self.textContainerInset.left + 5, self.textContainerInset.top, obj.width - self.textContainerInset.left - self.textContainerInset.right - 10, self.font.lineHeight);
-            *stop = YES;
-        }
-    }];
+    self.phLabel.frame = CGRectMake(self.textContainerInset.left + self.textContainer.lineFragmentPadding, self.textContainerInset.top, self.textContainer.size.width - self.textContainer.lineFragmentPadding*2, self.font.lineHeight);
 }
 
 #pragma mark -
@@ -113,7 +127,11 @@ NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholde
 {
     BOOL isHidden = self.hasText || self.attributedText.length != 0;
     self.phLabel.hidden = isHidden;
-    [[NSNotificationCenter defaultCenter] postNotificationName:LFTextViewPlaceholderHiddenNotification object:@(isHidden)];
+    
+    if (self.lfTextViewPlaceholderHidden && self.isPlaceholderHidden != isHidden) {
+        self.lfTextViewPlaceholderHidden(isHidden);
+        _placeholderHidden = isHidden;
+    }
     
     if (self.lfTextViewFitHeight) {
         self.scrollEnabled = NO;
@@ -121,21 +139,6 @@ NSString *const LFTextViewPlaceholderHiddenNotification = @"LFTextViewPlaceholde
             self.lfTextViewFitHeight(self.fitHeight);
             self.lastHeight = self.fitHeight;
         }
-    }
-}
-
-#pragma mark -
-#pragma mark - 控制键盘出现消失
-- (BOOL)canBecomeFirstResponder
-{
-    return YES;
-}
-
-- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    if (self.isFirstResponder) {
-        [self resignFirstResponder];
-    }else {
-        [self becomeFirstResponder];
     }
 }
 

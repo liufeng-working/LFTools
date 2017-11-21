@@ -9,12 +9,14 @@
 #import "LFBadgeButton.h"
 
 #define kFontSize [UIFont systemFontOfSize:(self.titleLabel.font.pointSize - 3)]
-#define kDotSize 10
+#define kDotSize 8
 #define kMaxNum 99
 #define kNewWord @"new"
 @interface LFBadgeButton ()
 
 @property(nonatomic,weak,readwrite) UILabel *badgeLabel;
+
+@property(nonatomic,weak,readwrite) UIImageView *backgroundView;
 
 @end
 
@@ -24,7 +26,7 @@
 {
     if (!_badgeLabel) {
         UILabel *badge = [[UILabel alloc] init];
-        badge.backgroundColor = [UIColor redColor];
+        badge.backgroundColor = [UIColor clearColor];
         badge.textColor = [UIColor whiteColor];
         badge.font = kFontSize;
         badge.textAlignment = NSTextAlignmentCenter;
@@ -33,6 +35,18 @@
         _badgeLabel = badge;
     }
     return _badgeLabel;
+}
+
+- (UIImageView *)backgroundView
+{
+    if (!_backgroundView) {
+        UIImageView *background = [[UIImageView alloc] init];
+        background.backgroundColor = [UIColor redColor];
+        background.layer.masksToBounds = YES;
+        [self insertSubview:background belowSubview:self.badgeLabel];
+        _backgroundView = background;
+    }
+    return _backgroundView;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -54,7 +68,7 @@
 
 - (void)setupDefault
 {
-    _type = LFBadgeButtonTypeNum;
+    _type = LFBadgeButtonTypeDot;
     _position = LFBadgeButtonPositionTopRight;
     _offset = LFBadgeButtonOffsetHalf;
     _above = LFBadgeButtonAboveTitle;
@@ -100,6 +114,7 @@
     
     if (self.badge <= 0) {
         self.badgeLabel.hidden = YES;
+        self.backgroundView.hidden = YES;
         return;
     }
     
@@ -255,10 +270,14 @@
             self.badgeLabel.frame = CGRectMake(CGRectGetMaxX(baseR) - realW + hSpace, CGRectGetMinY(baseR) - vSpace, realW, realH);
             break;
     }
+    
+    self.backgroundView.frame = self.badgeLabel.frame;
+    self.backgroundView.hidden = self.badgeLabel.isHidden;
+    self.backgroundView.layer.cornerRadius = cornerRadius;
 }
 
 - (void)setHighlighted:(BOOL)highlighted {
-    //去除高亮状态
+    [super setHighlighted:highlighted];
 }
 
 - (NSString *)stringFromNSInteger:(NSInteger)number

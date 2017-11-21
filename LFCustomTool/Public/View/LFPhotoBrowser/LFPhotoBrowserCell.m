@@ -8,7 +8,6 @@
 
 #import "LFPhotoBrowserCell.h"
 #import "LFPhotoModel.h"
-#import "UIImageView+WebCache.h"
 
 #define lfMinimumZoomScale 1
 #define lfMaximumZoomScale 3

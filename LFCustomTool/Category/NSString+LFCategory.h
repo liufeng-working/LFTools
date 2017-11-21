@@ -67,7 +67,7 @@
 - (NSString *)removeLastChar;
 
 /**
- *  得到字符串的长度（unicode码，主观看到的长度）
+ *  得到字符串的长度（主观看到的长度）
  */
 - (NSInteger)LENGTH;
 

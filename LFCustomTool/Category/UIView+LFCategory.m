@@ -129,7 +129,7 @@
 
 - (CGPoint)boundsCenter
 {
-    return CGPointMake(self.width / 2, self.height / 2);
+    return CGPointMake(self.width/2, self.height/2);
 }
 
 /**
@@ -221,11 +221,42 @@ static const NSInteger count = 20;
  */
 - (UIViewController *)viewController
 {
-    UIResponder *nextResponder = [self nextResponder];
-    while (![nextResponder isKindOfClass:[UIViewController class]] && nextResponder) {
-        nextResponder = [nextResponder nextResponder];
+    do {
+        nextResponder = nextResponder.nextResponder;
+        if ([nextResponder isKindOfClass:[UIViewController class]]) {
+            return nextResponder;
+        }
+    } while (nextResponder != nil);
+    
+    return nil;
+}
+
+- (UIViewController *)topViewController
+{
+    NSMutableArray<UIViewController *> *controllersHierarchy = [[NSMutableArray alloc] init];
+    
+    UIViewController *topController = self.window.rootViewController;
+    
+    if (topController) {
+        [controllersHierarchy addObject:topController];
     }
-    return nextResponder ? (UIViewController *)nextResponder : nil;
+    
+    while ([topController presentedViewController]) {
+        
+        topController = [topController presentedViewController];
+        [controllersHierarchy addObject:topController];
+    }
+    
+    UIViewController *matchController = [self viewController];
+    
+    while (matchController != nil && [controllersHierarchy containsObject:matchController] == NO) {
+        do {
+            matchController = (UIViewController*)[matchController nextResponder];
+            
+        } while (matchController != nil && [matchController isKindOfClass:[UIViewController class]] == NO);
+    }
+    
+    return (UIViewController *)matchController;
 }
 
 //碎片化

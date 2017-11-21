@@ -21,13 +21,23 @@
 /**
  图片数组（可以装自己定义的模型，然后实现下面的block，返回模型中可用的字段<UIImage/NSURL>）
  */
-@property(nonatomic,strong) NSArray<id> *items;
+@property(nonatomic,strong) NSArray <id> *items;
 @property(nonatomic,copy) id (^item_map)(id item);
 
 /**
  当前显示的索引
  */
 @property(nonatomic,assign) NSInteger currentIndex;
+
+/**
+ item的类型和传入的类型相同
+ */
+@property(nonatomic,copy) void(^saveClick)(id item);
+
+/**
+ 保存按钮是否显示（默认NO）
+ */
+@property(nonatomic,assign) BOOL saveShow;
 
 /**
  显示图片浏览器

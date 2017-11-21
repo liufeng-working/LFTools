@@ -306,7 +306,7 @@ static inline void lf_exchangeInstanceMethod(Class class, SEL originalSelector, 
 @implementation UIViewController (imagePicker)
 
 /**
- 展示图片选择器，相册／相机
+ 展示图片选择器，相册／相机（单张）
  */
 - (void)showImagePickerWithCompletion:(KTImagePickerCompletion)com
 {

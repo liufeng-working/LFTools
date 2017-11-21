@@ -61,7 +61,12 @@ typedef NS_ENUM(NSInteger, LFBadgeButtonAbove) {
 @property(nonatomic,weak,readonly) UILabel *badgeLabel;
 
 /**
- 样式（默认LFBadgeButtonTypeNum）
+ 背景
+ */
+@property(nonatomic,weak,readonly) UIImageView *backgroundView;
+
+/**
+ 样式（默认LFBadgeButtonTypeDot）
  */
 @property(nonatomic,assign) LFBadgeButtonType type;
 
@@ -71,7 +76,7 @@ typedef NS_ENUM(NSInteger, LFBadgeButtonAbove) {
 @property(nonatomic,assign) LFBadgeButtonPosition position;
 
 /**
- 缩进（默认LFBadgeButtonInsetsHalf）
+ 缩进(默认LFBadgeButtonInsetsHalf)
  */
 @property(nonatomic,assign) LFBadgeButtonOffset offset;
 

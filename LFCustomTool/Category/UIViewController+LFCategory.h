@@ -113,7 +113,7 @@ typedef void(^KTImagePickerCompletion)(UIImage *originalImage, UIImage *editedIm
 @interface UIViewController (imagePicker)
 
 /**
- 展示图片选择器，相册／相机
+ 展示图片选择器，相册／相机（单张）
  */
 - (void)showImagePickerWithCompletion:(KTImagePickerCompletion)com;
 
@@ -122,7 +122,7 @@ typedef void(^KTImagePickerCompletion)(UIImage *originalImage, UIImage *editedIm
 @interface UIViewController (datePicker)
 
 /**
- 展示一个时间选择器（只有一个确定回掉）
+ 展示一个时间选择器（只有一个确定回调）
  
  @param sureBlock 确定回调
  @return 返回一个实例，可以用这个实例来设置其他属性

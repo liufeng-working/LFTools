@@ -41,18 +41,26 @@
     [self.contentView addSubview:imageView];
     _imageView = imageView;
     
-    [imageView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self);
-    }];
-    
     UIButton *deleteBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     [deleteBtn addTarget:self action:@selector(deleteImage:) forControlEvents:UIControlEventTouchUpInside];
     [self.contentView addSubview:deleteBtn];
     _deleteBtn = deleteBtn;
     
-    [deleteBtn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.right.equalTo(self);
-    }];
+    // 添加约束
+    imageView.translatesAutoresizingMaskIntoConstraints = NO;
+    deleteBtn.translatesAutoresizingMaskIntoConstraints = NO;
+    NSDictionary *views = NSDictionaryOfVariableBindings(imageView, deleteBtn);
+    NSArray *ihC = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[imageView]-0-|" options:0 metrics:nil views:views];
+    [self.contentView addConstraints:ihC];
+    
+    NSArray *ivC = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[imageView]-0-|" options:0 metrics:nil views:views];
+    [self.contentView addConstraints:ivC];
+    
+    NSArray *bhC = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[deleteBtn]-0-|" options:0 metrics:nil views:views];
+    [self.contentView addConstraints:bhC];
+    
+    NSArray *bvC = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[deleteBtn]" options:0 metrics:nil views:views];
+    [self.contentView addConstraints:bvC];
 }
 
 - (void)setImage:(UIImage *)image

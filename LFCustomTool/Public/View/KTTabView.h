@@ -26,7 +26,7 @@
 /**
  选中某一个
  */
-@property(nonatomic,assign) NSUInteger index;
+@property(nonatomic,assign) NSInteger index;
 
 /**
  默认字体颜色

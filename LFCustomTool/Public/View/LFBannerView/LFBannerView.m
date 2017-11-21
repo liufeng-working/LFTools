@@ -91,15 +91,12 @@ static NSString *const cellIdentifier = @"LFBannerCell";
     return self;
 }
 
-- (instancetype)initWithCoder:(NSCoder *)coder
-{
-    self = [super initWithCoder:coder];
-    if (self) {
-        self.backgroundColor = [UIColor clearColor];
-        
-        [self.collectionView registerClass:[LFBannerCell class] forCellWithReuseIdentifier:cellIdentifier];
-    }
-    return self;
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    self.backgroundColor = [UIColor clearColor];
+    
+    [self.collectionView registerClass:[LFBannerCell class] forCellWithReuseIdentifier:cellIdentifier];
 }
 
 - (void)layoutSubviews {

@@ -156,21 +156,18 @@
 }
 
 /**
- *  得到字符串的长度（unicode码，主观看到的长度）
+ *  得到字符串的长度（主观看到的长度）
  */
 - (NSInteger)LENGTH
 {
-    NSRange lastRange = NSMakeRange(0, 0);
-    NSInteger length = 0;
-    for (NSInteger i = 0; i < self.length; i ++) {
-        NSRange range = [self rangeOfComposedCharacterSequenceAtIndex:i];
-        if (range.location != lastRange.location ||
-            range.length != lastRange.length) {
-            length += 1;
-        }
-        
-        lastRange = range;
+    if (self.length == 0) {
+        return 0;
     }
+    
+    __block NSInteger length = 0;
+    [self enumerateSubstringsInRange:NSMakeRange(0, self.length) options:NSStringEnumerationByComposedCharacterSequences usingBlock:^(NSString * _Nullable substring, NSRange substringRange, NSRange enclosingRange, BOOL * _Nonnull stop) {
+        length++;
+    }];
     
     return length;
 }
@@ -181,11 +178,11 @@
 - (NSString *)stringAtIndex:(NSInteger)index
 {
     if ([self isEmpty]) {
-        return @" ";
+        return @"";
     }
     
     if (index >= self.LENGTH) {
-        return nil;
+        return @"";
     }
     
     NSInteger indexStr = 0;
@@ -513,7 +510,8 @@
 /**
  *  去除首尾特定字符
  */
-- (NSString *)trim:(NSString *)trim {
+- (NSString *)trim:(NSString *)trim
+{
     NSString *str = self;
     str = [str trimLeft:trim];
     str = [str trimRight:trim];
@@ -523,14 +521,16 @@
 /**
  *  去除左边空格
  */
-- (NSString *)trimLeft {
+- (NSString *)trimLeft
+{
     return [self trimLeft:@" "];
 }
 
 /**
  *  去除左边指定字符
  */
-- (NSString *)trimLeft:(NSString *)trim {
+- (NSString *)trimLeft:(NSString *)trim
+{
     NSString *str = self;
     while ([str hasPrefix:trim]) {
         str = [str stringFromIndex:trim.LENGTH];
@@ -541,14 +541,16 @@
 /**
  *  去除右边空格
  */
-- (NSString *)trimRight {
+- (NSString *)trimRight
+{
     return [self trimRight:@" "];
 }
 
 /**
  *  去除右边特定字符
  */
-- (NSString *)trimRight:(NSString *)trim {
+- (NSString *)trimRight:(NSString *)trim
+{
     NSString *str = self;
     while ([str hasSuffix:trim]) {
         str = [str stringToIndex:str.LENGTH - trim.LENGTH];
@@ -559,35 +561,40 @@
 /**
  *  获取字符串左边num长度的字符串
  */
-- (NSString *)left:(NSUInteger)num {
+- (NSString *)left:(NSUInteger)num
+{
     return [self stringToIndex:num];
 }
 
 /**
  *  获取字符串右边num长度的字符串
  */
-- (NSString *)right:(NSUInteger)num {
+- (NSString *)right:(NSUInteger)num
+{
     return [self stringFromIndex:(self.LENGTH - num)];
 }
 
 /**
  *  获取字符串左边left长度和右边right长度的字符串
  */
-- (NSString *)left:(NSUInteger)left right:(NSUInteger)right {
+- (NSString *)left:(NSUInteger)left right:(NSUInteger)right
+{
     return [[self left:left] stringByAppendingString:[self right:right]];
 }
 
 /**
  *  获取字符串右边right长度和左边left长度的字符串
  */
-- (NSString *)right:(NSUInteger)right left:(NSUInteger)left {
+- (NSString *)right:(NSUInteger)right left:(NSUInteger)left
+{
     return [[self right:right] stringByAppendingString:[self left:left]];
 }
 
 /**
  *  32位随机字符串
  */
-+ (NSString *)random32BitString{
++ (NSString *)random32BitString
+{
     char data[32];
     for (int x = 0; x < 32; x ++){
         

@@ -10,6 +10,8 @@
 #import "LFShowPhotoCell.h"
 #import "LFPhotoBrowserViewController.h"
 
+#define lf_showPhoto_contentSizeKey @"contentSize"
+
 static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 @interface LFShowPhotoView ()<UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
 
@@ -28,21 +30,17 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
     return self;
 }
 
-- (instancetype)initWithCoder:(NSCoder *)coder
-{
-    self = [super initWithCoder:coder];
-    if (self) {
-        
-        [self setupSubviews];
-        [self defaultSetting];
-    }
-    return self;
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    [self setupSubviews];
+    [self defaultSetting];
 }
 
 - (void)setupSubviews
 {
     UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    layout.scrollDirection = self.scrollDirection;
     UICollectionView *collection = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
     collection.backgroundColor = [UIColor whiteColor];
     collection.delegate = self;
@@ -54,14 +52,21 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
     _collectionView = collection;
     [collection registerClass:[LFShowPhotoCell class] forCellWithReuseIdentifier:lf_showPhoto_Identifier];
     
-    [collection mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self);
-    }];
+    // 添加约束
+    collection.translatesAutoresizingMaskIntoConstraints = NO;
+    NSDictionary *views = NSDictionaryOfVariableBindings(collection);
+    NSArray *hC = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[collection]-0-|" options:0 metrics:nil views:views];
+    [self addConstraints:hC];
+    
+    NSArray *vC = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[collection]-0-|" options:0 metrics:nil views:views];
+    [self addConstraints:vC];
 }
 
 - (void)defaultSetting
 {
     _photoBrowserEnable = YES;
+    
+    [self.collectionView addObserver:self forKeyPath:lf_showPhoto_contentSizeKey options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew context:nil];
 }
 
 #pragma mark -
@@ -80,7 +85,7 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 - (NSUInteger)columnCount
 {
     if ([self.dataSource respondsToSelector:@selector(showPhotoViewColumnCount:)]) {
-        return [self.dataSource showPhotoViewColumnCount:self];
+        return [self.dataSource showPhotoViewColumnCount:self] ?: 1;
     }else {
         return 3;
     }
@@ -88,12 +93,16 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 
 #pragma mark -
 #pragma mark - 每个位置cell的size
-- (CGSize)sizeAtIndex:(NSUInteger)index
+- (CGSize)itemSize
 {
-    if ([self.dataSource respondsToSelector:@selector(showPhotoView:sizeAtIndex:)]) {
-        return [self.dataSource showPhotoView:self sizeAtIndex:index];
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewItemSize:)]) {
+        CGSize size = [self.dataSource showPhotoViewItemSize:self];
+        return [self fitSize:size maxSize:CGSizeMake(CGRectGetWidth(self.frame), MAXFLOAT)];
     }else {
         CGFloat itemW = (CGRectGetWidth(self.frame) - self.insets.left - self.insets.right - (self.columnCount - 1)*self.columnSpacing - 1)/self.columnCount;
+        if (itemW <= 10) {
+            itemW = 10;
+        }
         return CGSizeMake(itemW, itemW);
     }
 }
@@ -132,6 +141,17 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 }
 
 #pragma mark -
+#pragma mark - 滚动方向
+- (UICollectionViewScrollDirection)scrollDirection
+{
+    if ([self.dataSource respondsToSelector:@selector(showPhotoViewScrollDirection:)]) {
+        return [self.dataSource showPhotoViewScrollDirection:self];
+    }else {
+        return UICollectionViewScrollDirectionVertical;
+    }
+}
+
+#pragma mark -
 #pragma mark - 数量
 - (NSUInteger)count
 {
@@ -147,6 +167,22 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
     }
     
     return count < self.maxCount ? count : self.maxCount;
+}
+
+#pragma mark -
+#pragma mark - 监测内容尺寸改变
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    
+    if ([keyPath isEqualToString:lf_showPhoto_contentSizeKey]) {
+        CGSize oldS = [change[NSKeyValueChangeOldKey] CGSizeValue];
+        CGSize newS = [change[NSKeyValueChangeNewKey] CGSizeValue];
+        if (!CGSizeEqualToSize(oldS, newS)) {
+            _fitSize = CGSizeMake(newS.width + self.insets.left + self.insets.right, newS.height + self.insets.top + self.insets.bottom);
+            if (self.lfAddPhotoViewFitSize) {
+                self.lfAddPhotoViewFitSize(self.fitSize);
+            }
+        }
+    }
 }
 
 #pragma mark -
@@ -203,7 +239,7 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 #pragma mark -
 #pragma mark - UICollectionViewDelegateFlowLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return [self sizeAtIndex:indexPath.row];
+    return [self itemSize];
 }
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
@@ -211,11 +247,37 @@ static NSString *lf_showPhoto_Identifier = @"LFShowPhotoCell";
 }
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section {
-    return self.rowSpacing;
+    return self.scrollDirection == UICollectionViewScrollDirectionVertical ? self.rowSpacing : self.columnSpacing;
 }
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section {
-    return self.columnSpacing;
+    return self.scrollDirection == UICollectionViewScrollDirectionVertical ? self.columnSpacing : self.rowSpacing;
+}
+
+#pragma mark -
+#pragma mark - private
+- (CGSize)fitSize:(CGSize)originalSize maxSize:(CGSize)maxSize
+{
+    CGFloat maxW = maxSize.width;
+    CGFloat maxH = maxSize.height;
+    CGFloat maxScale = maxW*1.0/maxH;
+    CGFloat originalW = originalSize.width;
+    CGFloat originalH = originalSize.height;
+    CGFloat scale = originalW*1.0/originalH;
+    
+    if (scale > maxScale && originalW > maxW) {
+        return CGSizeMake(maxW, maxW / scale);
+    }else if (scale < maxScale && originalH > maxH) {
+        return CGSizeMake(scale * maxH, maxH);
+    }else if (scale == maxScale && originalH > maxH) {
+        return CGSizeMake(maxW, maxH);
+    }else {
+        return originalSize;
+    }
+}
+
+- (void)dealloc {
+    [self.collectionView removeObserver:self forKeyPath:lf_showPhoto_contentSizeKey];
 }
 
 @end

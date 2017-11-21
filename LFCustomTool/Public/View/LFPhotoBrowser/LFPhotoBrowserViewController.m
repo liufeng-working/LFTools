@@ -9,15 +9,13 @@
 #import "LFPhotoBrowserViewController.h"
 #import "LFPhotoBrowserCell.h"
 #import "LFExtraView.h"
-#import "Masonry.h"
 
 #define lf_screenWidth ([UIScreen mainScreen].bounds.size.width)
 #define lf_screenHeight ([UIScreen mainScreen].bounds.size.height)
 #define lf_extraViewHeight 44
-#define lf_window ([UIApplication sharedApplication].delegate.window)
-@interface LFPhotoBrowserViewController ()<LFPhotoBrowserCellDelegate>
+@interface LFPhotoBrowserViewController ()<LFPhotoBrowserCellDelegate, LFExtraViewDelegate>
 
-@property(nonatomic,weak) LFExtraView *extraView;
+@property(nonatomic,strong) LFExtraView *extraView;
 
 @end
 
@@ -31,32 +29,50 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     layout.minimumLineSpacing = 0;
     layout.minimumInteritemSpacing = 0;
     layout.itemSize = CGSizeMake(lf_screenWidth, lf_screenHeight);
+    
     return [super initWithCollectionViewLayout:layout];
+}
+
+- (LFExtraView *)extraView
+{
+    if (!_extraView) {
+        _extraView = [[LFExtraView alloc] init];
+        _extraView.delegate = self;
+    }
+    return _extraView;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    LFExtraView *extra = [[LFExtraView alloc] init];
-    if (self.images.count) {
-        extra.totle = self.images.count;
-    }else if (self.urls.count) {
-        extra.totle = self.urls.count;
-    }else if (self.photos.count) {
-        extra.totle = self.photos.count;
-    }else if (self.items.count) {
-        extra.totle = self.items.count;
-    }else {
-        extra.totle = 0;
-    }
+    [self setupUI];
+}
+
+#pragma mark -
+#pragma mark - UI相关
+- (void)setupUI
+{
+    [self.view addSubview:self.extraView];
+    self.extraView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSDictionary *views = @{@"extra": self.extraView};
+    NSDictionary *metrics = @{@"lf_extraViewHeight": @(lf_extraViewHeight)};
+    NSArray *hC = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[extra]-0-|" options:0 metrics:nil views:views];
+    [self.view addConstraints:hC];
     
-    [self.view addSubview:extra];
-    _extraView = extra;
-    [extra mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(@20);
-        make.left.right.equalTo(self.view);
-        make.height.equalTo(@(lf_extraViewHeight));
-    }];
+    NSArray *vC = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-20-[extra(lf_extraViewHeight)]" options:0 metrics:metrics views:views];
+    [self.view addConstraints:vC];
+    
+    if (self.images.count) {
+        self.extraView.totle = self.images.count;
+    }else if (self.urls.count) {
+        self.extraView.totle = self.urls.count;
+    }else if (self.photos.count) {
+        self.extraView.totle = self.photos.count;
+    }else if (self.items.count) {
+        self.extraView.totle = self.items.count;
+    }else {
+        self.extraView.totle = 0;
+    }
     
     self.collectionView.pagingEnabled = YES;
     self.collectionView.showsHorizontalScrollIndicator = NO;
@@ -67,8 +83,15 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.currentIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
     
     if (self.images.count > 1 || self.urls.count > 1 || self.photos.count > 1 || self.items.count > 1) {
-        _extraView.currentIndex = self.currentIndex + 1;
+        self.extraView.currentIndex = self.currentIndex + 1;
     }
+}
+
+- (void)setSaveShow:(BOOL)saveShow
+{
+    _saveShow = saveShow;
+    
+    self.extraView.saveShow = saveShow;
 }
 
 #pragma mark -
@@ -78,8 +101,8 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
     self.view.transform = CGAffineTransformMakeScale(0.5, 0.5);
     [UIView animateWithDuration:0.1 animations:^{
         self.view.transform = CGAffineTransformIdentity;
-        [lf_window.rootViewController.view addSubview:self.view];
-        [lf_window.rootViewController addChildViewController:self];
+        [kWindow.rootViewController.view addSubview:self.view];
+        [kWindow.rootViewController addChildViewController:self];
     }];
 }
 
@@ -159,6 +182,39 @@ static NSString * const cellIdentifier = @"LFPhotoBrowserCell";
 - (void)didSelectPhotoBrowserCell:(LFPhotoBrowserCell *)cell
 {
     [self hide];
+}
+
+#pragma mark -
+#pragma mark - LFExtraViewDelegate
+- (void)extraViewDidClickSave:(LFExtraView *)view
+{
+    if (self.images.count) {
+        if (self.saveClick) {
+            self.saveClick(self.images[self.currentIndex]);
+        }
+    }else if (self.urls.count) {
+        if (self.saveClick) {
+            self.saveClick(self.urls[self.currentIndex]);
+        }
+    }else if (self.photos.count) {
+        if (self.saveClick) {
+            self.saveClick(self.photos[self.currentIndex]);
+        }
+    }else if (self.items.count) {
+        if (self.item_map) {
+            id item = self.item_map(self.items[self.currentIndex]);
+            if ([item isKindOfClass:[UIImage class]] ||
+                [item isKindOfClass:[NSURL class]]) {
+                if (self.saveClick) {
+                    self.saveClick(item);
+                }
+            }else {
+                NSAssert(NO, @"block\"item_map\"的返回值应为UIImage或NSURL");
+            }
+        }else {
+            NSAssert(NO, @"使用[LFPhotoBrowserViewController items]，必须实现\"item_map\"");
+        }
+    }
 }
 
 @end

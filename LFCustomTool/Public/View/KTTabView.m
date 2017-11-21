@@ -8,23 +8,30 @@
 
 #import "KTTabView.h"
 
-#define kScale 1.0
 @interface KTTabView ()
 
+/** 滚动背景 */
+@property(nonatomic,weak) UIScrollView *scrollView;
+
+/** 当前选中标签 */
 @property (weak, nonatomic) UIButton *currentTab;
 
 /** 滚动条 */
 @property (weak, nonatomic) UIView *scrollBar;
 
+/** 分割线 */
 @property(nonatomic,weak) UIView *line;
 
+/** 所有标签 */
 @property(nonatomic,strong) NSMutableArray<UIButton *> *tabs;
 
 @end
 
 @implementation KTTabView
 
-//懒加载
+/**
+ 懒加载
+ */
 - (NSMutableArray<UIButton *> *)tabs
 {
     if (!_tabs) {
@@ -33,9 +40,11 @@
     return _tabs;
 }
 
-- (instancetype)init
+#pragma mark -
+#pragma mark - 初始化方法
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    self = [super init];
+    self = [super initWithFrame:frame];
     if (self) {
         [self defaultSetting];
         [self addSubview];
@@ -43,14 +52,11 @@
     return self;
 }
 
-- (instancetype)initWithCoder:(NSCoder *)aDecoder
-{
-    self = [super initWithCoder:aDecoder];
-    if (self) {
-        [self defaultSetting];
-        [self addSubview];
-    }
-    return self;
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    [self defaultSetting];
+    [self addSubview];
 }
 
 - (void)defaultSetting
@@ -65,6 +71,17 @@
 
 - (void)addSubview
 {
+    UIScrollView *scrollView = [[UIScrollView alloc] init];
+    scrollView.showsVerticalScrollIndicator = NO;
+    scrollView.showsHorizontalScrollIndicator = NO;
+    scrollView.backgroundColor = [UIColor clearColor];
+    [self addSubview:scrollView];
+    _scrollView = scrollView;
+    
+    [scrollView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self);
+    }];
+    
     UIView *line = [UIView new];
     line.backgroundColor = [UIColor colorWithWhite:0 alpha:0.2];
     [self addSubview:line];
@@ -77,7 +94,7 @@
     
     UIView *scrollBar = [UIView new];
     scrollBar.backgroundColor = self.barColor;
-    [self addSubview:scrollBar];
+    [scrollView addSubview:scrollBar];
     _scrollBar = scrollBar;
 }
 
@@ -97,20 +114,17 @@
     
     CGFloat rightScale = curPage - leftIndex;
     CGFloat leftScale = 1 - rightScale;
-    
+
     CGFloat leftBmin = CGRectGetMinX(leftB.frame);
+    CGFloat leftBMax = CGRectGetMaxX(leftB.frame);
     CGFloat barLeft = leftBmin + (CGRectGetMinX(rightB.frame) - leftBmin)*rightScale;
+    CGFloat barRight = leftBMax + (CGRectGetMaxX(rightB.frame) - leftBMax)*rightScale;
     [self.scrollBar mas_remakeConstraints:^(MASConstraintMaker *make) {
         make.height.equalTo(@(self.barHeight));
         make.bottom.equalTo(self);
-        make.width.equalTo(self.currentTab);
         make.left.equalTo(@(barLeft));
+        make.right.equalTo(@(barRight));
     }];
-    
-    CGFloat leftS = leftScale*(kScale - 1) + 1;
-    CGFloat rightS = rightScale*(kScale - 1) + 1;
-    leftB.transform = CGAffineTransformMakeScale(leftS, leftS);
-    rightB.transform = CGAffineTransformMakeScale(rightS, rightS);
     
     CGFloat leftRed, leftGreen, leftBlue;
     CGFloat rightRed, rightGreen, rightBlue;
@@ -127,17 +141,32 @@
     
     if (!names.count) { return; }
     
+    //先计算总宽度
+    __block CGFloat maxW = 0;
+    NSMutableArray *nameWs = [NSMutableArray arrayWithCapacity:names.count];
+    UIFont *font = [UIFont systemFontOfSize:17];
+    [names enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
+        CGFloat nameW = [obj sizeWithFont:font].width + 20;
+        [nameWs addObject:@(nameW)];
+        maxW += nameW;
+    }];
+    
+    CGFloat width = kScreenWidth;
+    CGFloat height = kScreenHeight;
+    self.scrollView.contentSize = CGSizeMake(maxW > width ? maxW : width, height);
+    
     __block UIButton *lastBtn = nil;
     [names enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
         btn.tag = idx;
-        btn.titleLabel.font = [UIFont systemFontOfSize:17];
+        btn.titleLabel.font = font;
         btn.adjustsImageWhenHighlighted = NO;
         [btn setTitle:obj forState:UIControlStateNormal];
         [btn setTitleColor:self.normalColor forState:UIControlStateNormal];
         [btn setTitleColor:self.selectColor forState:UIControlStateSelected];
         [btn addTarget:self action:@selector(switchTab:) forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:btn];
+        [self.scrollView addSubview:btn];
         [self.tabs addObject:btn];
        
         CGFloat itemW = [nameWs[idx] floatValue];
@@ -152,28 +181,23 @@
         }];
         
         lastBtn = btn;
-        
-        if (idx == 0) {
-            btn.selected = YES;
-            btn.transform = CGAffineTransformMakeScale(kScale, kScale);
-            self.currentTab = btn;
-            if ([self.delegate respondsToSelector:@selector(tabViewDidSelectTabAtIndex:)]) {
-                [self.delegate tabViewDidSelectTabAtIndex:btn.tag];
-            }
-        }
     }];
+    
+    self.index = 0;
 }
 
-- (void)setIndex:(NSUInteger)index
+- (void)setIndex:(NSInteger)index
 {
-    if (index > self.names.count) {
+    if (index < 0) {
+        _index = 0;
+    }else if (index > self.names.count) {
         _index = self.names.count;
     }else {
         _index = index;
     }
     
-    UIButton *tab = self.tabs[index];
-    [self changeTab:tab];
+    UIButton *tab = self.tabs[_index];
+    [self changeTab:tab animation:NO];
 }
 
 - (void)setNormalColor:(UIColor *)normalColor
@@ -203,7 +227,13 @@
 
 - (void)setBarHeight:(CGFloat)barHeight
 {
-    _barHeight = barHeight <= 5 ? barHeight : 5;
+    if (barHeight <= 0) {
+        _barHeight = 0;
+    }else if (barHeight >= 5) {
+        _barHeight = 5;
+    }else {
+        _barHeight = barHeight;
+    }
 }
 
 - (void)setHideLine:(BOOL)hideLine
@@ -217,41 +247,54 @@
     
     if (self.currentTab == sender) { return; }
     
-    [self changeTab:sender];
+    [self changeTab:sender animation:YES];
     
     if ([self.delegate respondsToSelector:@selector(tabViewDidSelectTabAtIndex:)]) {
         [self.delegate tabViewDidSelectTabAtIndex:sender.tag];
     }
 }
 
-- (void)changeTab:(UIButton *)sender
+- (void)changeTab:(UIButton *)sender animation:(BOOL)animation
 {
     if (self.currentTab == sender) { return; }
     
     sender.selected = YES;
     self.currentTab.selected = NO;
-    self.currentTab.transform = CGAffineTransformIdentity;
     self.currentTab = sender;
     
-    [self setNeedsUpdateConstraints];
-    [self updateConstraintsIfNeeded];
-    [UIView animateWithDuration:self.duration animations:^{
-        sender.transform = CGAffineTransformMakeScale(kScale, kScale);
-        [self layoutIfNeeded];
+    [self.scrollBar mas_remakeConstraints:^(MASConstraintMaker *make) {
+        make.height.equalTo(@(self.barHeight));
+        make.bottom.equalTo(self);
+        make.left.right.equalTo(self.currentTab);
     }];
+    if (animation) {
+        [UIView animateWithDuration:self.duration animations:^{
+            [self layoutIfNeeded];
+        } completion:^(BOOL finished) {
+            [self offsetAnimation];
+        }];
+    }else {
+        [self layoutIfNeeded];
+        [self offsetAnimation];
+    }
 }
 
-- (void)updateConstraints
+- (void)offsetAnimation
 {
-    if (self.currentTab) {
-        [self.scrollBar mas_remakeConstraints:^(MASConstraintMaker *make) {
-            make.height.equalTo(@(self.barHeight));
-            make.bottom.equalTo(self);
-            make.left.right.equalTo(self.currentTab);
-        }];
-    }
-    
-    [super updateConstraints];
+    [UIView animateWithDuration:self.duration animations:^{
+        CGFloat width = CGRectGetWidth(self.scrollView.frame);
+        self.scrollView.contentOffset = CGPointMake(CGRectGetMidX(self.currentTab.frame) - width*0.5, 0);
+        
+        CGFloat offsetX = self.scrollView.contentOffset.x;
+        if (offsetX <= 0) {
+            self.scrollView.contentOffset = CGPointMake(0, 0);
+        }
+        
+        CGFloat maxOffset = self.scrollView.contentSize.width - width;
+        if (offsetX >= maxOffset) {
+            self.scrollView.contentOffset = CGPointMake(maxOffset, 0);
+        }
+    }];
 }
 
 @end

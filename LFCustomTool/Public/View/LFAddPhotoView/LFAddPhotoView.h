@@ -66,6 +66,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)addImages:(NSArray<UIImage *> *)images;
 
 /**
+ 清除内容
+ */
+- (void)clear;
+
+/**
  最大图片数
  */
 - (NSUInteger)maxCount;
@@ -135,8 +140,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol LFAddPhotoViewDataSource <NSObject>
 
-@required
-
 @optional
 /**
  最大个数（默认3个）
@@ -149,7 +152,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSUInteger)addPhotoViewColumnCount:(LFAddPhotoView *)photoView;
 
 /**
- 每个位置cell的size
+ cell的size
  */
 - (CGSize)addPhotoViewItemSize:(LFAddPhotoView *)photoView;
 

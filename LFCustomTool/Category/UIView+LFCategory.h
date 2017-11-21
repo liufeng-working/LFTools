@@ -104,7 +104,12 @@
 /**
  *  该view的 控制器
  */
-- (UIViewController *)viewController;
+@property(nonatomic,strong,nullable,readonly) UIViewController *viewController;
+
+/**
+ 最上层的viewController
+ */
+@property(nonatomic,strong,nullable,readonly) UIViewController *topViewController;
 
 @end
 

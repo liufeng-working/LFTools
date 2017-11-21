@@ -13,8 +13,8 @@
 #define kGifFont1 [UIFont boldSystemFontOfSize:13]
 #define kGifText @"动图"
 #define kGifText1 @"GIF"
-#define kVideoMaker [UIImage imageNamed:@"lf_videoMarker"]
-#define kVideoMaker1 [UIImage imageNamed:@"lf_videoMarker1"]
+#define kVideoMaker [self imageWithNamed:@"lf_videoMarker"]
+#define kVideoMaker1 [self imageWithNamed:@"lf_videoMarker1"]
 @interface LFImageView ()<LFPhotoPickerButtonDelegate>
 
 /** 选择图片 */
@@ -59,7 +59,7 @@
         UIButton *delete = [[UIButton alloc] init];
         delete.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
         delete.contentVerticalAlignment = UIControlContentVerticalAlignmentTop;
-        [delete setImage:[UIImage imageNamed:@"lf_deleteImage"] forState:UIControlStateNormal];
+        [delete setImage:[self imageWithNamed:@"lf_deleteImage"] forState:UIControlStateNormal];
         [delete addTarget:self action:@selector(deleteClick) forControlEvents:UIControlEventTouchUpInside];
         [self addSubview:delete];
         _deleteBtn = delete;
@@ -192,31 +192,31 @@
     BOOL photoPicker = YES, delete = YES, videoMarker = YES, videoMarker1 = YES, gifMarker = YES, gifMarker1 = YES;
     if (type != LFImageViewTypeNone) {
         
-        if (bit&LFImageViewTypePhoto) {//图片选择按钮
+        if (type&LFImageViewTypePhoto) {//图片选择按钮
             photoPicker = NO;
         }
         
-        if (bit&LFImageViewTypePhoto1) {//图片删除按钮
+        if (type&LFImageViewTypePhoto1) {//图片删除按钮
             delete = NO;
         }
         
-        if (bit&LFImageViewTypeVideo) {//播放按钮
+        if (type&LFImageViewTypeVideo) {//播放按钮
             videoMarker = NO;
         }
         
-        if (bit&LFImageViewTypeVideo1) {//摄像头+时间
+        if (type&LFImageViewTypeVideo1) {//摄像头+时间
             videoMarker1 = NO;
         }
         
-        if (bit&LFImageViewTypeGif) {//动图 字样
+        if (type&LFImageViewTypeGif) {//动图 字样
             gifMarker = NO;
         }
         
-        if (bit&LFImageViewTypeGif1) {//GIF 字样
+        if (type&LFImageViewTypeGif1) {//GIF 字样
             gifMarker1 = NO;
-        }e
+        }
         
-        if (bit&LFImageViewTypeAudio) {//暂无
+        if (type&LFImageViewTypeAudio) {//暂无
             
         }
     }
@@ -265,6 +265,15 @@
     }
 }
 
+#pragma mark -
+#pragma mark - private
+- (UIImage *)imageWithNamed:(NSString *)name
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"LFImageView.bundle" ofType:nil];
+    NSBundle *imgBundle = [NSBundle bundleWithPath:path];
+    return [UIImage imageNamed:name inBundle:imgBundle compatibleWithTraitCollection:nil];
+}
+
 @end
 
 @interface LFPhotoPickerButton ()
@@ -290,8 +299,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         [self addTarget:self action:@selector(photoPickerClick:) forControlEvents:UIControlEventTouchUpInside];
-        [self setImage:[UIImage imageNamed:@"lf_pickerPhoto_normal"] forState:UIControlStateNormal];
-        [self setImage:[UIImage imageNamed:@"lf_pickerPhoto_select"] forState:UIControlStateSelected];
+        [self setImage:[self imageWithNamed:@"lf_pickerPhoto_normal"] forState:UIControlStateNormal];
+        [self setImage:[self imageWithNamed:@"lf_pickerPhoto_select"] forState:UIControlStateSelected];
     }
     return self;
 }
@@ -312,6 +321,15 @@
     if ([self.delegate respondsToSelector:@selector(photoPickerButtonClick:)]) {
         [self.delegate photoPickerButtonClick:self];
     }
+}
+
+#pragma mark -
+#pragma mark - private
+- (UIImage *)imageWithNamed:(NSString *)name
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"LFImageView.bundle" ofType:nil];
+    NSBundle *imgBundle = [NSBundle bundleWithPath:path];
+    return [UIImage imageNamed:name inBundle:imgBundle compatibleWithTraitCollection:nil];
 }
 
 - (void)dealloc {

@@ -50,15 +50,11 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
     return self;
 }
 
-- (instancetype)initWithCoder:(NSCoder *)coder
-{
-    self = [super initWithCoder:coder];
-    if (self) {
-        
-        [self setupSubviews];
-        [self setupDefault];
-    }
-    return self;
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+    [self setupSubviews];
+    [self setupDefault];
 }
 
 - (void)setupSubviews
@@ -76,9 +72,14 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
     _collectionView = collection;
     [collection registerClass:[LFAddPhotoCell class] forCellWithReuseIdentifier:lf_addPhoto_Identifier];
     
-    [collection mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.equalTo(self);
-    }];
+    // 添加约束
+    collection.translatesAutoresizingMaskIntoConstraints = NO;
+    NSDictionary *views = NSDictionaryOfVariableBindings(collection);
+    NSArray *hC = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[collection]-0-|" options:0 metrics:nil views:views];
+    [self addConstraints:hC];
+    
+    NSArray *vC = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[collection]-0-|" options:0 metrics:nil views:views];
+    [self addConstraints:vC];
 }
 
 - (void)setupDefault
@@ -86,6 +87,19 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
     [self.photos addObject:self.addImage];
     
     [self.collectionView addObserver:self forKeyPath:lf_addPhoto_contentSizeKey options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew context:nil];
+}
+
+- (void)setDataSource:(id<LFAddPhotoViewDataSource>)dataSource
+{
+    _dataSource = dataSource;
+    
+    if (self.photos.count) {
+        [self.photos replaceObjectAtIndex:self.photos.count - 1 withObject:self.addImage];
+    }
+    
+    if (self.collectionView) {
+        ((UICollectionViewFlowLayout *)self.collectionView.collectionViewLayout).scrollDirection = self.scrollDirection;
+    }
 }
 
 #pragma mark -
@@ -115,6 +129,15 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 }
 
 #pragma mark -
+#pragma mark - 清除内容
+- (void)clear
+{
+    [self.photos removeAllObjects];
+    [self.photos addObject:self.addImage];
+    [self.collectionView reloadData];
+}
+
+#pragma mark -
 #pragma mark - 最大个数
 - (NSUInteger)maxCount
 {
@@ -130,20 +153,25 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 - (NSUInteger)columnCount
 {
     if ([self.dataSource respondsToSelector:@selector(addPhotoViewColumnCount:)]) {
-        return [self.dataSource addPhotoViewColumnCount:self];
+        
+        return [self.dataSource addPhotoViewColumnCount:self] ?: 1;
     }else {
         return 3;
     }
 }
 
 #pragma mark -
-#pragma mark - 每个位置cell的size
+#pragma mark - cell的size
 - (CGSize)itemSize
 {
     if ([self.dataSource respondsToSelector:@selector(addPhotoViewItemSize:)]) {
-        return [self.dataSource addPhotoViewItemSize:self];
+        CGSize size = [self.dataSource addPhotoViewItemSize:self];
+        return [self fitSize:size maxSize:CGSizeMake(CGRectGetWidth(self.frame), MAXFLOAT)];
     }else {
         CGFloat itemW = (CGRectGetWidth(self.frame) - self.insets.left - self.insets.right - (self.columnCount - 1)*self.columnSpacing - 1)/self.columnCount;
+        if (itemW <= 10) {
+            itemW = 10;
+        }
         return CGSizeMake(itemW, itemW);
     }
 }
@@ -186,9 +214,11 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 - (UIImage *)addImage
 {
     if ([self.dataSource respondsToSelector:@selector(addPhotoViewImageOfAdd:)]) {
-        return [self.dataSource addPhotoViewImageOfAdd:self];
+        UIImage *img = [self.dataSource addPhotoViewImageOfAdd:self];
+        NSAssert(img, @"添加按钮的图片不能为nil");
+        return img;
     }else {
-        return [UIImage imageNamed:@"lf_addPhoto_add"];
+        return [self imageWithNamed:@"lf_addPhoto_add"];
     }
 }
 
@@ -197,9 +227,11 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 - (UIImage *)deleteImage
 {
     if ([self.dataSource respondsToSelector:@selector(addPhotoViewImageOfDelete:)]) {
-        return [self.dataSource addPhotoViewImageOfDelete:self];
+        UIImage *img = [self.dataSource addPhotoViewImageOfDelete:self];
+        NSAssert(img, @"删除按钮的图片不能为nil");
+        return img;
     }else {
-        return [UIImage imageNamed:@"lf_addPhoto_delete"];
+        return [self imageWithNamed:@"lf_addPhoto_delete"];
     }
 }
 
@@ -305,11 +337,11 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
 }
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section {
-    return self.rowSpacing;
+    return self.scrollDirection == UICollectionViewScrollDirectionVertical ? self.rowSpacing : self.columnSpacing;
 }
 
 - (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section {
-    return self.columnSpacing;
+    return self.scrollDirection == UICollectionViewScrollDirectionVertical ? self.columnSpacing : self.rowSpacing;
 }
 
 #pragma mark -
@@ -320,9 +352,36 @@ static NSString *lf_addPhoto_Identifier = @"LFAddPhotoCell";
         return;
     }
     
-    if (lf_addPhoto_count >= self.columnCount && lf_addPhoto_count <= self.maxCount) {
+    if (lf_addPhoto_count >= 1 && lf_addPhoto_count <= self.maxCount) {
         [self.collectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.photos.count - 1 inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
     }
+}
+
+- (CGSize)fitSize:(CGSize)originalSize maxSize:(CGSize)maxSize
+{
+    CGFloat maxW = maxSize.width;
+    CGFloat maxH = maxSize.height;
+    CGFloat maxScale = maxW*1.0/maxH;
+    CGFloat originalW = originalSize.width;
+    CGFloat originalH = originalSize.height;
+    CGFloat scale = originalW*1.0/originalH;
+    
+    if (scale > maxScale && originalW > maxW) {
+        return CGSizeMake(maxW, maxW / scale);
+    }else if (scale < maxScale && originalH > maxH) {
+        return CGSizeMake(scale * maxH, maxH);
+    }else if (scale == maxScale && originalH > maxH) {
+        return CGSizeMake(maxW, maxH);
+    }else {
+        return originalSize;
+    }
+}
+
+- (UIImage *)imageWithNamed:(NSString *)name
+{
+    NSString *path = [[NSBundle mainBundle] pathForResource:@"LFAddPhotoView.bundle" ofType:nil];
+    NSBundle *imgBundle = [NSBundle bundleWithPath:path];
+    return [UIImage imageNamed:name inBundle:imgBundle compatibleWithTraitCollection:nil];
 }
 
 - (void)dealloc {

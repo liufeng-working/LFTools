@@ -10,8 +10,6 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-// object中存放BOOL值
-UIKIT_EXTERN NSString *const LFTextViewPlaceholderHiddenNotification;
 @interface LFTextView : UITextView
 
 /**
@@ -23,6 +21,16 @@ UIKIT_EXTERN NSString *const LFTextViewPlaceholderHiddenNotification;
  富文本占位字符
  */
 @property(nonatomic,strong) NSAttributedString *attributedPlaceholder;
+
+/**
+ 占位是否隐藏(状态改变时会调用)
+ */
+@property(nonatomic,copy) void(^lfTextViewPlaceholderHidden)(BOOL isHidden);
+
+/**
+ 占位是否隐藏
+ */
+@property(nonatomic,assign,readonly,getter=isPlaceholderHidden) BOOL placeholderHidden;
 
 /**
  适合文本的高度，有改变就会回调，如果实现了这个block，则scrollEnabled会设置为NO，即默认认为你会改变LFTextView的高度

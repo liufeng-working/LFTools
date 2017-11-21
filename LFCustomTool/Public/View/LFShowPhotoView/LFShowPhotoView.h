@@ -33,6 +33,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic,copy) id (^item_map)(id item);
 
 /**
+ 合适的大小（能全部展示），有改变就会回调
+ */
+@property(nonatomic,copy) void(^lfAddPhotoViewFitSize)(CGSize size);
+
+/**
+ 合适的大小（能全部展示）
+ */
+@property(nonatomic,assign,readonly) CGSize fitSize;
+
+/**
  图片浏览器是否可用（默认YES）
  */
 @property(nonatomic,assign) BOOL photoBrowserEnable;
@@ -66,9 +76,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSUInteger)showPhotoViewColumnCount:(LFShowPhotoView *)photoView;
 
 /**
- 每个位置cell的size
+ cell的size
  */
-- (CGSize)showPhotoView:(LFShowPhotoView *)photoView sizeAtIndex:(NSUInteger)index;
+- (CGSize)showPhotoViewItemSize:(LFShowPhotoView *)photoView;
 
 /**
  上下左右间距（默认{0, 0, 0, 0}）
@@ -84,6 +94,11 @@ NS_ASSUME_NONNULL_BEGIN
  行间距（默认10）
  */
 - (CGFloat)showPhotoViewRowSpacing:(LFShowPhotoView *)photoView;
+
+/**
+ 滚动方向
+ */
+- (UICollectionViewScrollDirection)showPhotoViewScrollDirection:(LFShowPhotoView *)photoView;
 
 @end
 
